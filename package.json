@@ -1,5 +1,5 @@
 {
-  "name": "@moss/api",
+  "name": "moss-api",
   "version": "0.1.0",
   "description": "Official API for building Moss plugins - types and utilities for plugin development",
   "type": "module",
@@ -34,7 +34,7 @@
     "publishing",
     "syndication"
   ],
-  "author": "Symbiosis Lab",
+  "author": "Guo Liu",
   "license": "MIT",
   "repository": {
     "type": "git",
