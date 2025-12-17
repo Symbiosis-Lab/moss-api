@@ -14,6 +14,13 @@ interface TauriWindow {
 
 /**
  * Get the Tauri core API
+ *
+ * @deprecated Use higher-level APIs instead:
+ * - File operations: `readFile`, `writeFile`, `listFiles`, `fileExists`
+ * - HTTP: `fetchUrl`, `downloadAsset`
+ * - Binary execution: `executeBinary`
+ * - Cookies: `getPluginCookie`, `setPluginCookie`
+ *
  * @throws Error if Tauri is not available
  */
 export function getTauriCore(): TauriCore {
