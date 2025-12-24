@@ -597,7 +597,7 @@ export function setupMockTauri(options?: SetupMockTauriOptions): MockTauriContex
         const pn = payload?.pluginName as string;
         const pp = payload?.projectPath as string;
         const rp = payload?.relativePath as string;
-        const content = payload?.data as string;
+        const content = payload?.content as string;
         const fullPath = `${pp}/.moss/plugins/${pn}/${rp}`;
         filesystem.setFile(fullPath, content);
         return null;
