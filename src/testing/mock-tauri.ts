@@ -571,6 +571,56 @@ export function setupMockTauri(options?: SetupMockTauriOptions): MockTauriContex
           .map((p) => p.substring(projectPath.length + 1));
       }
 
+      case "project_file_exists": {
+        const projectPath = payload?.projectPath as string;
+        const relativePath = payload?.relativePath as string;
+        const fullPath = `${projectPath}/${relativePath}`;
+        return filesystem.getFile(fullPath) !== undefined;
+      }
+
+      // ======================================================================
+      // Plugin Storage Operations
+      // ======================================================================
+      case "read_plugin_file": {
+        const pn = payload?.pluginName as string;
+        const pp = payload?.projectPath as string;
+        const rp = payload?.relativePath as string;
+        const fullPath = `${pp}/.moss/plugins/${pn}/${rp}`;
+        const file = filesystem.getFile(fullPath);
+        if (file) {
+          return file.content;
+        }
+        throw new Error(`Plugin file not found: ${fullPath}`);
+      }
+
+      case "write_plugin_file": {
+        const pn = payload?.pluginName as string;
+        const pp = payload?.projectPath as string;
+        const rp = payload?.relativePath as string;
+        const content = payload?.data as string;
+        const fullPath = `${pp}/.moss/plugins/${pn}/${rp}`;
+        filesystem.setFile(fullPath, content);
+        return null;
+      }
+
+      case "list_plugin_files": {
+        const pn = payload?.pluginName as string;
+        const pp = payload?.projectPath as string;
+        const prefix = `${pp}/.moss/plugins/${pn}/`;
+        const allPaths = filesystem.listFiles();
+        return allPaths
+          .filter((p) => p.startsWith(prefix))
+          .map((p) => p.substring(prefix.length));
+      }
+
+      case "plugin_file_exists": {
+        const pn = payload?.pluginName as string;
+        const pp = payload?.projectPath as string;
+        const rp = payload?.relativePath as string;
+        const fullPath = `${pp}/.moss/plugins/${pn}/${rp}`;
+        return filesystem.getFile(fullPath) !== undefined;
+      }
+
       // ======================================================================
       // HTTP Operations
       // ======================================================================
