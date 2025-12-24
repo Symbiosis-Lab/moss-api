@@ -3,9 +3,12 @@
  *
  * These functions provide HTTP capabilities that bypass browser CORS
  * restrictions by using Rust's HTTP client under the hood.
+ *
+ * Project path for downloads is auto-detected from the runtime context.
  */
 
 import { getTauriCore } from "./tauri";
+import { getInternalContext } from "./context";
 
 // ============================================================================
 // Types
@@ -134,18 +137,18 @@ export async function fetchUrl(
  * the binary data through JavaScript. The filename is derived from
  * the URL, and file extension is inferred from Content-Type if needed.
  *
+ * Project path is auto-detected from the runtime context.
+ *
  * @param url - URL to download
- * @param projectPath - Absolute path to the project directory
  * @param targetDir - Target directory within project (e.g., "assets")
  * @param options - Optional download configuration
  * @returns Download result with actual path where file was saved
- * @throws Error if download or write fails
+ * @throws Error if download or write fails, or called outside a hook
  *
  * @example
  * ```typescript
  * const result = await downloadAsset(
  *   "https://example.com/image",
- *   "/path/to/project",
  *   "assets"
  * );
  * if (result.ok) {
@@ -155,17 +158,17 @@ export async function fetchUrl(
  */
 export async function downloadAsset(
   url: string,
-  projectPath: string,
   targetDir: string,
   options: DownloadOptions = {}
 ): Promise<DownloadResult> {
+  const ctx = getInternalContext();
   const { timeoutMs = 30000 } = options;
 
   const result = await getTauriCore().invoke<TauriDownloadResult>(
     "download_asset",
     {
       url,
-      projectPath,
+      projectPath: ctx.project_path,
       targetDir,
       timeoutMs,
     }

@@ -1,21 +1,28 @@
 /**
  * Hook context types - data provided to plugins during hook execution
+ *
+ * Note: Paths (project_path, moss_dir, output_dir) are NOT included here.
+ * Plugins should use the filesystem APIs (readFile, writeFile, etc.)
+ * and plugin storage APIs (readPluginFile, writePluginFile, etc.)
+ * which automatically resolve paths from the internal context.
  */
 
 import type { ProjectInfo } from "./plugin";
 
 /**
  * Base context shared by all hooks
+ *
+ * Contains only business data - no paths.
+ * Use readFile(), writeFile() for project files.
+ * Use readPluginFile(), writePluginFile() for plugin storage.
  */
 export interface BaseContext {
-  project_path: string;
-  moss_dir: string;
   project_info: ProjectInfo;
   config: Record<string, unknown>;
 }
 
 /**
- * Context for before_build hook
+ * Context for before_build hook (process capability)
  */
 export interface BeforeBuildContext extends BaseContext {}
 
@@ -30,7 +37,6 @@ export interface OnBuildContext extends BaseContext {
  * Context for on_deploy hook (deployer plugins)
  */
 export interface OnDeployContext extends BaseContext {
-  output_dir: string;
   site_files: string[];
 }
 
@@ -38,7 +44,6 @@ export interface OnDeployContext extends BaseContext {
  * Context for after_deploy hook (syndicator plugins)
  */
 export interface AfterDeployContext extends BaseContext {
-  output_dir: string;
   site_files: string[];
   articles: ArticleInfo[];
   deployment?: DeploymentInfo;

@@ -4,14 +4,21 @@ import { executeBinary } from "../binary";
 describe("Binary Execution Utilities", () => {
   const originalWindow = globalThis.window;
   let mockInvoke: ReturnType<typeof vi.fn>;
+  let mockWindow: Record<string, unknown>;
 
   beforeEach(() => {
     mockInvoke = vi.fn();
-    (globalThis as unknown as { window: unknown }).window = {
+    mockWindow = {
       __TAURI__: {
         core: { invoke: mockInvoke },
       },
+      __MOSS_INTERNAL_CONTEXT__: {
+        plugin_name: "github",
+        project_path: "/path/to/project",
+        moss_dir: "/path/to/project/.moss",
+      },
     };
+    (globalThis as unknown as { window: unknown }).window = mockWindow;
   });
 
   afterEach(() => {
@@ -20,7 +27,7 @@ describe("Binary Execution Utilities", () => {
   });
 
   describe("executeBinary", () => {
-    it("calls execute_binary with correct arguments", async () => {
+    it("uses project root as working directory from context", async () => {
       mockInvoke.mockResolvedValue({
         success: true,
         exit_code: 0,
@@ -31,13 +38,12 @@ describe("Binary Execution Utilities", () => {
       await executeBinary({
         binaryPath: "git",
         args: ["status"],
-        workingDir: "/path/to/repo",
       });
 
       expect(mockInvoke).toHaveBeenCalledWith("execute_binary", {
         binaryPath: "git",
         args: ["status"],
-        workingDir: "/path/to/repo",
+        workingDir: "/path/to/project",
         timeoutMs: 60000,
         env: undefined,
       });
@@ -54,14 +60,13 @@ describe("Binary Execution Utilities", () => {
       await executeBinary({
         binaryPath: "npm",
         args: ["install"],
-        workingDir: "/project",
         timeoutMs: 120000,
       });
 
       expect(mockInvoke).toHaveBeenCalledWith("execute_binary", {
         binaryPath: "npm",
         args: ["install"],
-        workingDir: "/project",
+        workingDir: "/path/to/project",
         timeoutMs: 120000,
         env: undefined,
       });
@@ -78,14 +83,13 @@ describe("Binary Execution Utilities", () => {
       await executeBinary({
         binaryPath: "node",
         args: ["script.js"],
-        workingDir: "/project",
         env: { NODE_ENV: "production", DEBUG: "true" },
       });
 
       expect(mockInvoke).toHaveBeenCalledWith("execute_binary", {
         binaryPath: "node",
         args: ["script.js"],
-        workingDir: "/project",
+        workingDir: "/path/to/project",
         timeoutMs: 60000,
         env: { NODE_ENV: "production", DEBUG: "true" },
       });
@@ -102,7 +106,6 @@ describe("Binary Execution Utilities", () => {
       const result = await executeBinary({
         binaryPath: "echo",
         args: ["Hello"],
-        workingDir: "/",
       });
 
       expect(result.success).toBe(true);
@@ -122,7 +125,6 @@ describe("Binary Execution Utilities", () => {
       const result = await executeBinary({
         binaryPath: "false",
         args: [],
-        workingDir: "/",
       });
 
       expect(result.success).toBe(false);
@@ -141,11 +143,21 @@ describe("Binary Execution Utilities", () => {
       const result = await executeBinary({
         binaryPath: "nonexistent",
         args: [],
-        workingDir: "/",
       });
 
       expect(result.success).toBe(false);
       expect(result.exitCode).toBe(127);
+    });
+
+    it("throws when called outside hook context", async () => {
+      delete mockWindow.__MOSS_INTERNAL_CONTEXT__;
+
+      await expect(
+        executeBinary({
+          binaryPath: "git",
+          args: ["status"],
+        })
+      ).rejects.toThrow(/must be called from within a plugin hook/);
     });
 
     it("propagates errors from Tauri", async () => {
@@ -155,7 +167,6 @@ describe("Binary Execution Utilities", () => {
         executeBinary({
           binaryPath: "missing",
           args: [],
-          workingDir: "/",
         })
       ).rejects.toThrow("Binary not found");
     });
@@ -171,11 +182,39 @@ describe("Binary Execution Utilities", () => {
       const result = await executeBinary({
         binaryPath: "git",
         args: ["branch", "--show-current"],
-        workingDir: "/repo",
       });
 
       expect(result.success).toBe(true);
       expect(result.stdout).toBe("main");
+    });
+  });
+
+  describe("context isolation", () => {
+    it("uses project path from context for different projects", async () => {
+      mockWindow.__MOSS_INTERNAL_CONTEXT__ = {
+        plugin_name: "other-plugin",
+        project_path: "/different/project",
+        moss_dir: "/different/project/.moss",
+      };
+      mockInvoke.mockResolvedValue({
+        success: true,
+        exit_code: 0,
+        stdout: "",
+        stderr: "",
+      });
+
+      await executeBinary({
+        binaryPath: "ls",
+        args: ["-la"],
+      });
+
+      expect(mockInvoke).toHaveBeenCalledWith("execute_binary", {
+        binaryPath: "ls",
+        args: ["-la"],
+        workingDir: "/different/project",
+        timeoutMs: 60000,
+        env: undefined,
+      });
     });
   });
 });

@@ -4,14 +4,21 @@ import { fetchUrl, downloadAsset } from "../http";
 describe("HTTP Utilities", () => {
   const originalWindow = globalThis.window;
   let mockInvoke: ReturnType<typeof vi.fn>;
+  let mockWindow: Record<string, unknown>;
 
   beforeEach(() => {
     mockInvoke = vi.fn();
-    (globalThis as unknown as { window: unknown }).window = {
+    mockWindow = {
       __TAURI__: {
         core: { invoke: mockInvoke },
       },
+      __MOSS_INTERNAL_CONTEXT__: {
+        plugin_name: "matters",
+        project_path: "/my/project",
+        moss_dir: "/my/project/.moss",
+      },
     };
+    (globalThis as unknown as { window: unknown }).window = mockWindow;
   });
 
   afterEach(() => {
@@ -105,10 +112,25 @@ describe("HTTP Utilities", () => {
         "Connection refused"
       );
     });
+
+    it("does not require context (stateless)", async () => {
+      // fetchUrl doesn't need context - it's a pure HTTP call
+      delete mockWindow.__MOSS_INTERNAL_CONTEXT__;
+      mockInvoke.mockResolvedValue({
+        status: 200,
+        ok: true,
+        body_base64: btoa("response"),
+        content_type: "text/plain",
+      });
+
+      const result = await fetchUrl("https://example.com");
+
+      expect(result.ok).toBe(true);
+    });
   });
 
   describe("downloadAsset", () => {
-    it("calls download_asset with correct arguments", async () => {
+    it("downloads to project directory with auto-detected path", async () => {
       mockInvoke.mockResolvedValue({
         status: 200,
         ok: true,
@@ -117,15 +139,11 @@ describe("HTTP Utilities", () => {
         actual_path: "assets/image.png",
       });
 
-      await downloadAsset(
-        "https://example.com/image.png",
-        "/path/to/project",
-        "assets"
-      );
+      await downloadAsset("https://example.com/image.png", "assets");
 
       expect(mockInvoke).toHaveBeenCalledWith("download_asset", {
         url: "https://example.com/image.png",
-        projectPath: "/path/to/project",
+        projectPath: "/my/project",
         targetDir: "assets",
         timeoutMs: 30000,
       });
@@ -140,13 +158,13 @@ describe("HTTP Utilities", () => {
         actual_path: "",
       });
 
-      await downloadAsset("https://example.com", "/project", "downloads", {
+      await downloadAsset("https://example.com", "downloads", {
         timeoutMs: 120000,
       });
 
       expect(mockInvoke).toHaveBeenCalledWith("download_asset", {
         url: "https://example.com",
-        projectPath: "/project",
+        projectPath: "/my/project",
         targetDir: "downloads",
         timeoutMs: 120000,
       });
@@ -161,11 +179,7 @@ describe("HTTP Utilities", () => {
         actual_path: "assets/photo.jpg",
       });
 
-      const result = await downloadAsset(
-        "https://example.com/photo",
-        "/project",
-        "assets"
-      );
+      const result = await downloadAsset("https://example.com/photo", "assets");
 
       expect(result.status).toBe(200);
       expect(result.ok).toBe(true);
@@ -185,7 +199,6 @@ describe("HTTP Utilities", () => {
 
       const result = await downloadAsset(
         "https://example.com/missing",
-        "/project",
         "assets"
       );
 
@@ -194,12 +207,46 @@ describe("HTTP Utilities", () => {
       expect(result.bytesWritten).toBe(0);
     });
 
+    it("throws when called outside hook context", async () => {
+      delete mockWindow.__MOSS_INTERNAL_CONTEXT__;
+
+      await expect(
+        downloadAsset("https://example.com/image.png", "assets")
+      ).rejects.toThrow(/must be called from within a plugin hook/);
+    });
+
     it("propagates errors from Tauri", async () => {
       mockInvoke.mockRejectedValue(new Error("Timeout"));
 
       await expect(
-        downloadAsset("https://slow.example.com", "/project", "assets")
+        downloadAsset("https://slow.example.com", "assets")
       ).rejects.toThrow("Timeout");
+    });
+  });
+
+  describe("context isolation", () => {
+    it("uses project path from context for downloads", async () => {
+      mockWindow.__MOSS_INTERNAL_CONTEXT__ = {
+        plugin_name: "other-plugin",
+        project_path: "/different/project",
+        moss_dir: "/different/project/.moss",
+      };
+      mockInvoke.mockResolvedValue({
+        status: 200,
+        ok: true,
+        content_type: "image/png",
+        bytes_written: 1024,
+        actual_path: "images/photo.png",
+      });
+
+      await downloadAsset("https://example.com/photo.png", "images");
+
+      expect(mockInvoke).toHaveBeenCalledWith("download_asset", {
+        url: "https://example.com/photo.png",
+        projectPath: "/different/project",
+        targetDir: "images",
+        timeoutMs: 30000,
+      });
     });
   });
 });

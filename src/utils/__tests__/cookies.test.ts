@@ -23,9 +23,10 @@ describe("Cookie Utilities", () => {
 
   describe("getPluginCookie", () => {
     it("reads plugin identity from runtime context", async () => {
-      mockWindow.__MOSS_CURRENT_CONTEXT__ = {
+      mockWindow.__MOSS_INTERNAL_CONTEXT__ = {
         plugin_name: "matters",
         project_path: "/test/project",
+        moss_dir: "/test/project/.moss",
       };
       mockInvoke.mockResolvedValue([]);
 
@@ -39,17 +40,16 @@ describe("Cookie Utilities", () => {
 
     it("throws descriptive error when called outside hook", async () => {
       // No context set
-      delete mockWindow.__MOSS_CURRENT_CONTEXT__;
-
       await expect(getPluginCookie()).rejects.toThrow(
-        "getPluginCookie() must be called from within a plugin hook"
+        /must be called from within a plugin hook/
       );
     });
 
     it("returns array of cookies from backend", async () => {
-      mockWindow.__MOSS_CURRENT_CONTEXT__ = {
+      mockWindow.__MOSS_INTERNAL_CONTEXT__ = {
         plugin_name: "matters",
         project_path: "/project",
+        moss_dir: "/project/.moss",
       };
       const cookies = [
         { name: "session", value: "abc123" },
@@ -63,9 +63,10 @@ describe("Cookie Utilities", () => {
     });
 
     it("returns empty array when no cookies", async () => {
-      mockWindow.__MOSS_CURRENT_CONTEXT__ = {
+      mockWindow.__MOSS_INTERNAL_CONTEXT__ = {
         plugin_name: "new-plugin",
         project_path: "/project",
+        moss_dir: "/project/.moss",
       };
       mockInvoke.mockResolvedValue([]);
 
@@ -75,9 +76,10 @@ describe("Cookie Utilities", () => {
     });
 
     it("propagates errors from Tauri", async () => {
-      mockWindow.__MOSS_CURRENT_CONTEXT__ = {
+      mockWindow.__MOSS_INTERNAL_CONTEXT__ = {
         plugin_name: "plugin",
         project_path: "/project",
+        moss_dir: "/project/.moss",
       };
       mockInvoke.mockRejectedValue(new Error("Failed to read cookies"));
 
@@ -87,9 +89,10 @@ describe("Cookie Utilities", () => {
 
   describe("setPluginCookie", () => {
     it("reads plugin identity from runtime context", async () => {
-      mockWindow.__MOSS_CURRENT_CONTEXT__ = {
+      mockWindow.__MOSS_INTERNAL_CONTEXT__ = {
         plugin_name: "matters",
         project_path: "/test/project",
+        moss_dir: "/test/project/.moss",
       };
       mockInvoke.mockResolvedValue(undefined);
 
@@ -105,19 +108,18 @@ describe("Cookie Utilities", () => {
 
     it("throws descriptive error when called outside hook", async () => {
       // No context set
-      delete mockWindow.__MOSS_CURRENT_CONTEXT__;
-
       await expect(
         setPluginCookie([{ name: "a", value: "b" }])
       ).rejects.toThrow(
-        "setPluginCookie() must be called from within a plugin hook"
+        /must be called from within a plugin hook/
       );
     });
 
     it("handles cookies with all fields", async () => {
-      mockWindow.__MOSS_CURRENT_CONTEXT__ = {
+      mockWindow.__MOSS_INTERNAL_CONTEXT__ = {
         plugin_name: "plugin",
         project_path: "/project",
+        moss_dir: "/project/.moss",
       };
       mockInvoke.mockResolvedValue(undefined);
 
@@ -139,9 +141,10 @@ describe("Cookie Utilities", () => {
     });
 
     it("handles multiple cookies", async () => {
-      mockWindow.__MOSS_CURRENT_CONTEXT__ = {
+      mockWindow.__MOSS_INTERNAL_CONTEXT__ = {
         plugin_name: "plugin",
         project_path: "/project",
+        moss_dir: "/project/.moss",
       };
       mockInvoke.mockResolvedValue(undefined);
 
@@ -160,9 +163,10 @@ describe("Cookie Utilities", () => {
     });
 
     it("handles empty cookie array", async () => {
-      mockWindow.__MOSS_CURRENT_CONTEXT__ = {
+      mockWindow.__MOSS_INTERNAL_CONTEXT__ = {
         plugin_name: "plugin",
         project_path: "/project",
+        moss_dir: "/project/.moss",
       };
       mockInvoke.mockResolvedValue(undefined);
 
@@ -176,9 +180,10 @@ describe("Cookie Utilities", () => {
     });
 
     it("propagates errors from Tauri", async () => {
-      mockWindow.__MOSS_CURRENT_CONTEXT__ = {
+      mockWindow.__MOSS_INTERNAL_CONTEXT__ = {
         plugin_name: "plugin",
         project_path: "/project",
+        moss_dir: "/project/.moss",
       };
       mockInvoke.mockRejectedValue(new Error("Failed to save cookies"));
 

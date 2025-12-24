@@ -25,13 +25,21 @@ export { log, warn, error } from "./logger";
 // Browser
 export { openBrowser, closeBrowser } from "./browser";
 
-// File System
+// File System (project files)
 export {
   readFile,
   writeFile,
   listFiles,
   fileExists,
 } from "./filesystem";
+
+// Plugin Storage (plugin's private directory)
+export {
+  readPluginFile,
+  writePluginFile,
+  listPluginFiles,
+  pluginFileExists,
+} from "./plugin-storage";
 
 // HTTP
 export {

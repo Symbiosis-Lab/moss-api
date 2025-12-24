@@ -3,9 +3,13 @@
  *
  * Allows plugins to execute external binaries (git, npm, etc.)
  * in a controlled environment.
+ *
+ * Working directory is auto-detected from the runtime context
+ * (always the project root).
  */
 
 import { getTauriCore } from "./tauri";
+import { getInternalContext } from "./context";
 
 // ============================================================================
 // Types
@@ -19,8 +23,6 @@ export interface ExecuteOptions {
   binaryPath: string;
   /** Arguments to pass to the binary */
   args: string[];
-  /** Working directory for execution */
-  workingDir: string;
   /** Timeout in milliseconds (default: 60000) */
   timeoutMs?: number;
   /** Additional environment variables */
@@ -59,9 +61,12 @@ interface TauriBinaryResult {
 /**
  * Execute an external binary
  *
- * @param options - Execution options including binary path, args, and working directory
+ * Working directory is auto-detected from the runtime context
+ * (always the project root).
+ *
+ * @param options - Execution options including binary path and args
  * @returns Execution result with stdout, stderr, and exit code
- * @throws Error if binary cannot be executed
+ * @throws Error if binary cannot be executed or called outside a hook
  *
  * @example
  * ```typescript
@@ -69,7 +74,6 @@ interface TauriBinaryResult {
  * const result = await executeBinary({
  *   binaryPath: "git",
  *   args: ["status"],
- *   workingDir: "/path/to/repo",
  * });
  *
  * if (result.success) {
@@ -85,7 +89,6 @@ interface TauriBinaryResult {
  * const result = await executeBinary({
  *   binaryPath: "npm",
  *   args: ["install"],
- *   workingDir: "/path/to/project",
  *   timeoutMs: 120000,
  *   env: { NODE_ENV: "production" },
  * });
@@ -94,14 +97,15 @@ interface TauriBinaryResult {
 export async function executeBinary(
   options: ExecuteOptions
 ): Promise<ExecuteResult> {
-  const { binaryPath, args, workingDir, timeoutMs = 60000, env } = options;
+  const ctx = getInternalContext();
+  const { binaryPath, args, timeoutMs = 60000, env } = options;
 
   const result = await getTauriCore().invoke<TauriBinaryResult>(
     "execute_binary",
     {
       binaryPath,
       args,
-      workingDir,
+      workingDir: ctx.project_path,
       timeoutMs,
       env,
     }

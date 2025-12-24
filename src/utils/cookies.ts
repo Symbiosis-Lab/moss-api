@@ -9,6 +9,7 @@
  */
 
 import { getTauriCore } from "./tauri";
+import { getInternalContext } from "./context";
 
 // ============================================================================
 // Types
@@ -26,15 +27,6 @@ export interface Cookie {
   domain?: string;
   /** Optional path for the cookie */
   path?: string;
-}
-
-/**
- * Plugin execution context - set by plugin runtime during hook execution.
- * Used for auto-detecting the calling plugin's identity.
- */
-interface PluginContext {
-  plugin_name: string;
-  project_path: string;
 }
 
 // ============================================================================
@@ -63,18 +55,11 @@ interface PluginContext {
  * ```
  */
 export async function getPluginCookie(): Promise<Cookie[]> {
-  const context = (window as unknown as { __MOSS_CURRENT_CONTEXT__?: PluginContext }).__MOSS_CURRENT_CONTEXT__;
-
-  if (!context) {
-    throw new Error(
-      "getPluginCookie() must be called from within a plugin hook. " +
-        "Ensure you're calling this from process(), generate(), deploy(), or syndicate()."
-    );
-  }
+  const ctx = getInternalContext();
 
   return getTauriCore().invoke<Cookie[]>("get_plugin_cookie", {
-    pluginName: context.plugin_name,
-    projectPath: context.project_path,
+    pluginName: ctx.plugin_name,
+    projectPath: ctx.project_path,
   });
 }
 
@@ -97,18 +82,11 @@ export async function getPluginCookie(): Promise<Cookie[]> {
  * ```
  */
 export async function setPluginCookie(cookies: Cookie[]): Promise<void> {
-  const context = (window as unknown as { __MOSS_CURRENT_CONTEXT__?: PluginContext }).__MOSS_CURRENT_CONTEXT__;
-
-  if (!context) {
-    throw new Error(
-      "setPluginCookie() must be called from within a plugin hook. " +
-        "Ensure you're calling this from process(), generate(), deploy(), or syndicate()."
-    );
-  }
+  const ctx = getInternalContext();
 
   await getTauriCore().invoke("set_plugin_cookie", {
-    pluginName: context.plugin_name,
-    projectPath: context.project_path,
+    pluginName: ctx.plugin_name,
+    projectPath: ctx.project_path,
     cookies,
   });
 }
