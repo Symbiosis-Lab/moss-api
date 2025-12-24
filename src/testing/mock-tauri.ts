@@ -458,6 +458,16 @@ function extractFilenameFromUrl(url: string): string {
 // ============================================================================
 
 /**
+ * Options for setting up mock Tauri environment
+ */
+export interface SetupMockTauriOptions {
+  /** Plugin name for internal context (default: "test-plugin") */
+  pluginName?: string;
+  /** Project path for internal context (default: "/test/project") */
+  projectPath?: string;
+}
+
+/**
  * Context returned by setupMockTauri with all mock utilities
  */
 export interface MockTauriContext {
@@ -473,6 +483,10 @@ export interface MockTauriContext {
   cookieStorage: MockCookieStorage;
   /** Browser open/close tracking */
   browserTracker: MockBrowserTracker;
+  /** The project path used for internal context */
+  projectPath: string;
+  /** The plugin name used for internal context */
+  pluginName: string;
   /** Cleanup function - must be called after tests */
   cleanup: () => void;
 }
@@ -481,16 +495,18 @@ export interface MockTauriContext {
  * Set up mock Tauri IPC for testing
  *
  * This sets up `window.__TAURI__.core.invoke` to intercept all IPC calls
- * and route them to in-memory implementations.
+ * and route them to in-memory implementations. It also sets up
+ * `__MOSS_INTERNAL_CONTEXT__` for the context-aware APIs.
  *
+ * @param options - Optional configuration for project path and plugin name
  * @returns Context with mock utilities and cleanup function
  *
  * @example
  * ```typescript
- * const ctx = setupMockTauri();
+ * const ctx = setupMockTauri({ projectPath: "/my/project", pluginName: "my-plugin" });
  *
  * // Set up test data
- * ctx.filesystem.setFile("/project/article.md", "# Test");
+ * ctx.filesystem.setFile("/my/project/article.md", "# Test");
  * ctx.urlConfig.setResponse("https://example.com/image.png", {
  *   status: 200,
  *   ok: true,
@@ -507,7 +523,10 @@ export interface MockTauriContext {
  * ctx.cleanup();
  * ```
  */
-export function setupMockTauri(): MockTauriContext {
+export function setupMockTauri(options?: SetupMockTauriOptions): MockTauriContext {
+  const projectPath = options?.projectPath ?? "/test/project";
+  const pluginName = options?.pluginName ?? "test-plugin";
+
   const filesystem = createMockFilesystem();
   const downloadTracker = createDownloadTracker();
   const urlConfig = createMockUrlConfig();
@@ -692,6 +711,11 @@ export function setupMockTauri(): MockTauriContext {
   const w = globalThis as unknown as {
     window?: {
       __TAURI__?: { core?: { invoke: typeof invoke } };
+      __MOSS_INTERNAL_CONTEXT__?: {
+        plugin_name: string;
+        project_path: string;
+        moss_dir: string;
+      };
     };
   };
 
@@ -700,9 +724,26 @@ export function setupMockTauri(): MockTauriContext {
     (globalThis as unknown as { window: object }).window = {};
   }
 
-  const win = (globalThis as unknown as { window: { __TAURI__?: { core?: { invoke: typeof invoke } } } }).window;
+  const win = (globalThis as unknown as {
+    window: {
+      __TAURI__?: { core?: { invoke: typeof invoke } };
+      __MOSS_INTERNAL_CONTEXT__?: {
+        plugin_name: string;
+        project_path: string;
+        moss_dir: string;
+      };
+    };
+  }).window;
+
   win.__TAURI__ = {
     core: { invoke },
+  };
+
+  // Set up internal context for context-aware APIs
+  win.__MOSS_INTERNAL_CONTEXT__ = {
+    plugin_name: pluginName,
+    project_path: projectPath,
+    moss_dir: `${projectPath}/.moss`,
   };
 
   return {
@@ -712,9 +753,12 @@ export function setupMockTauri(): MockTauriContext {
     binaryConfig,
     cookieStorage,
     browserTracker,
+    projectPath,
+    pluginName,
     cleanup: () => {
-      // Clear the mock Tauri interface
+      // Clear the mock Tauri interface and internal context
       delete win.__TAURI__;
+      delete win.__MOSS_INTERNAL_CONTEXT__;
       filesystem.clear();
       downloadTracker.reset();
       urlConfig.reset();

@@ -48,6 +48,7 @@ export {
   createMockCookieStorage,
   createMockBrowserTracker,
   // Types
+  type SetupMockTauriOptions,
   type MockTauriContext,
   type MockFilesystem,
   type MockFile,
