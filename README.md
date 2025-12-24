@@ -2,14 +2,14 @@
 
 [![CI](https://github.com/Symbiosis-Lab/moss-api/actions/workflows/ci.yml/badge.svg)](https://github.com/Symbiosis-Lab/moss-api/actions/workflows/ci.yml)
 [![codecov](https://codecov.io/gh/Symbiosis-Lab/moss-api/branch/main/graph/badge.svg)](https://codecov.io/gh/Symbiosis-Lab/moss-api)
-[![npm version](https://badge.fury.io/js/moss-api.svg)](https://www.npmjs.com/package/moss-api)
+[![npm version](https://badge.fury.io/js/%40symbiosis-lab%2Fmoss-api.svg)](https://www.npmjs.com/package/@symbiosis-lab/moss-api)
 
 Official API for building Moss plugins. Provides types and utilities for plugin development.
 
 ## Installation
 
 ```bash
-npm install moss-api
+npm install @symbiosis-lab/moss-api
 ```
 
 ## Usage
@@ -23,7 +23,7 @@ import type {
   HookResult,
   PluginManifest,
   PluginCategory,
-} from "moss-api";
+} from "@symbiosis-lab/moss-api";
 
 // Define your plugin manifest
 const manifest: PluginManifest = {
@@ -51,7 +51,7 @@ import {
   log,
   warn,
   error,
-} from "moss-api";
+} from "@symbiosis-lab/moss-api";
 
 // Set plugin context (call once at plugin initialization)
 setMessageContext("my-plugin", "on_deploy");
@@ -74,7 +74,7 @@ await reportComplete({ url: "https://example.com" });
 ### Browser Utilities
 
 ```typescript
-import { openBrowser, closeBrowser } from "moss-api";
+import { openBrowser, closeBrowser } from "@symbiosis-lab/moss-api";
 
 // Open authentication page in plugin browser window
 await openBrowser("https://example.com/auth");
@@ -86,7 +86,7 @@ await closeBrowser();
 ### Tauri Utilities
 
 ```typescript
-import { getTauriCore, isTauriAvailable } from "moss-api";
+import { getTauriCore, isTauriAvailable } from "@symbiosis-lab/moss-api";
 
 // Check if running in Tauri environment
 if (isTauriAvailable()) {
