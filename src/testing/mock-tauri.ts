@@ -410,13 +410,89 @@ export function createMockBrowserTracker(): MockBrowserTracker {
     get closeCount() {
       return closeCount;
     },
+    set closeCount(value: number) {
+      closeCount = value;
+    },
     get isOpen() {
       return isOpen;
+    },
+    set isOpen(value: boolean) {
+      isOpen = value;
     },
     reset() {
       openedUrls.length = 0;
       closeCount = 0;
       isOpen = false;
+    },
+  };
+}
+
+// ============================================================================
+// Dialog Tracker
+// ============================================================================
+
+/**
+ * Dialog result types matching the moss backend
+ */
+export interface MockDialogResult {
+  type: "submitted" | "cancelled";
+  value?: unknown;
+}
+
+/**
+ * Tracks dialog interactions for testing
+ */
+export interface MockDialogTracker {
+  /** Dialogs that were shown (with their URLs and titles) */
+  shownDialogs: Array<{ url: string; title: string; width: number; height: number }>;
+  /** Configure the next dialog result (for automatic response) */
+  nextResult: MockDialogResult | null;
+  /** Submitted results by dialog ID */
+  submittedResults: Map<string, MockDialogResult>;
+  /** Set the result for the next dialog shown */
+  setNextResult(result: MockDialogResult): void;
+  /** Simulate user submitting a dialog result */
+  submitResult(dialogId: string, value: unknown): void;
+  /** Simulate user cancelling a dialog */
+  cancelDialog(dialogId: string): void;
+  /** Reset tracking state */
+  reset(): void;
+}
+
+/**
+ * Create a new dialog tracker instance
+ */
+export function createMockDialogTracker(): MockDialogTracker {
+  const shownDialogs: Array<{ url: string; title: string; width: number; height: number }> = [];
+  const submittedResults = new Map<string, MockDialogResult>();
+  let nextResult: MockDialogResult | null = null;
+
+  return {
+    get shownDialogs() {
+      return shownDialogs;
+    },
+    get nextResult() {
+      return nextResult;
+    },
+    set nextResult(value: MockDialogResult | null) {
+      nextResult = value;
+    },
+    get submittedResults() {
+      return submittedResults;
+    },
+    setNextResult(result: MockDialogResult) {
+      nextResult = result;
+    },
+    submitResult(dialogId: string, value: unknown) {
+      submittedResults.set(dialogId, { type: "submitted", value });
+    },
+    cancelDialog(dialogId: string) {
+      submittedResults.set(dialogId, { type: "cancelled" });
+    },
+    reset() {
+      shownDialogs.length = 0;
+      submittedResults.clear();
+      nextResult = null;
     },
   };
 }
@@ -483,6 +559,8 @@ export interface MockTauriContext {
   cookieStorage: MockCookieStorage;
   /** Browser open/close tracking */
   browserTracker: MockBrowserTracker;
+  /** Dialog interaction tracking */
+  dialogTracker: MockDialogTracker;
   /** The project path used for internal context */
   projectPath: string;
   /** The plugin name used for internal context */
@@ -533,6 +611,7 @@ export function setupMockTauri(options?: SetupMockTauriOptions): MockTauriContex
   const binaryConfig = createMockBinaryConfig();
   const cookieStorage = createMockCookieStorage();
   const browserTracker = createMockBrowserTracker();
+  const dialogTracker = createMockDialogTracker();
 
   // Create invoke handler
   const invoke = async (cmd: string, args?: InvokeArgs): Promise<unknown> => {
@@ -728,6 +807,45 @@ export function setupMockTauri(options?: SetupMockTauriOptions): MockTauriContex
       }
 
       // ======================================================================
+      // Dialog Operations
+      // ======================================================================
+      case "show_plugin_dialog": {
+        const url = payload?.url as string;
+        const title = payload?.title as string;
+        const width = (payload?.width as number) ?? 500;
+        const height = (payload?.height as number) ?? 400;
+
+        // Track the dialog
+        (dialogTracker.shownDialogs as Array<{ url: string; title: string; width: number; height: number }>).push({
+          url,
+          title,
+          width,
+          height,
+        });
+
+        // If a next result is configured, return it immediately
+        if (dialogTracker.nextResult) {
+          const result = dialogTracker.nextResult;
+          (dialogTracker as { nextResult: MockDialogResult | null }).nextResult = null;
+          return result;
+        }
+
+        // Default to cancelled
+        return { type: "cancelled" };
+      }
+
+      case "submit_dialog_result": {
+        const dialogId = payload?.dialogId as string;
+        const result = payload?.result as MockDialogResult;
+
+        if (result) {
+          dialogTracker.submittedResults.set(dialogId, result);
+        }
+
+        return true;
+      }
+
+      // ======================================================================
       // Binary Execution
       // ======================================================================
       case "execute_binary": {
@@ -803,6 +921,7 @@ export function setupMockTauri(options?: SetupMockTauriOptions): MockTauriContex
     binaryConfig,
     cookieStorage,
     browserTracker,
+    dialogTracker,
     projectPath,
     pluginName,
     cleanup: () => {
@@ -815,6 +934,7 @@ export function setupMockTauri(options?: SetupMockTauriOptions): MockTauriContex
       binaryConfig.reset();
       cookieStorage.clear();
       browserTracker.reset();
+      dialogTracker.reset();
     },
   };
 }

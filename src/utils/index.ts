@@ -64,3 +64,20 @@ export {
   setPluginCookie,
   type Cookie,
 } from "./cookies";
+
+// Window/Dialog Management
+export {
+  showPluginDialog,
+  submitDialogResult,
+  cancelDialog,
+  type DialogResult,
+  type ShowDialogOptions,
+} from "./window";
+
+// Event Communication
+export {
+  emitEvent,
+  onEvent,
+  waitForEvent,
+  isEventApiAvailable,
+} from "./events";
