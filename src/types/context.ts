@@ -80,4 +80,15 @@ export interface DeploymentInfo {
   url: string;
   deployed_at: string;
   metadata: Record<string, string>;
+  /** DNS target for custom domain configuration */
+  dns_target?: DnsTarget;
 }
+
+/**
+ * DNS target type for custom domain configuration
+ * Provided by deploy plugins to configure DNS records
+ */
+export type DnsTarget =
+  | { type: "cname"; hostname: string }
+  | { type: "a"; ips: string[] }
+  | { type: "github-pages"; a_records: string[]; cname_target: string };
