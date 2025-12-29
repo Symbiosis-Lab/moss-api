@@ -412,6 +412,99 @@ describe("Binary Resolver Utilities", () => {
       });
     });
 
+    describe("directUrl download", () => {
+      it("downloads from direct URL without GitHub API call", async () => {
+        const directUrlConfig: BinaryConfig = {
+          name: "hugo",
+          versionCommand: "{name} version",
+          versionPattern: /hugo v(\d+\.\d+\.\d+)/i,
+          sources: {
+            "darwin-arm64": {
+              directUrl:
+                "https://github.com/gohugoio/hugo/releases/download/v0.152.2/hugo_extended_0.152.2_darwin-universal.tar.gz",
+            },
+          },
+        };
+
+        // PATH check fails
+        mockInvoke.mockResolvedValueOnce(mockBinaryNotFound());
+        // Platform detection for getPluginBinPath
+        mockPlatform("darwin", "arm64");
+        // Plugin storage check fails
+        mockInvoke.mockResolvedValueOnce(false);
+        // Download - mkdir (no GitHub API call!)
+        mockInvoke.mockResolvedValueOnce({ success: true, exit_code: 0, stdout: "", stderr: "" });
+        // Download - curl
+        mockInvoke.mockResolvedValueOnce({ success: true, exit_code: 0, stdout: "", stderr: "" });
+        // Create bin directory (writePluginFile for .gitkeep)
+        mockInvoke.mockResolvedValueOnce(undefined);
+        // Extract with tar
+        mockInvoke.mockResolvedValueOnce({ success: true, exit_code: 0, stdout: "", stderr: "" });
+        // chmod +x
+        mockInvoke.mockResolvedValueOnce({ success: true, exit_code: 0, stdout: "", stderr: "" });
+        // Cache release info
+        mockInvoke.mockResolvedValueOnce(undefined);
+        // Verify downloaded binary
+        mockInvoke.mockResolvedValueOnce(mockBinaryCheck("0.152.2"));
+
+        const progressCalls: string[] = [];
+        const result = await resolveBinary(directUrlConfig, {
+          autoDownload: true,
+          onProgress: (phase, message) => progressCalls.push(`${phase}: ${message}`),
+        });
+
+        expect(result.source).toBe("downloaded");
+        expect(result.version).toBe("0.152.2");
+        // Should not have called GitHub API
+        expect(progressCalls).toContain("download: Using direct download URL (v0.152.2)...");
+        expect(progressCalls).not.toContain("download: Fetching latest release info from GitHub...");
+      });
+
+      it("extracts version from direct URL", async () => {
+        const directUrlConfig: BinaryConfig = {
+          name: "hugo",
+          versionCommand: "{name} version",
+          versionPattern: /hugo v(\d+\.\d+\.\d+)/i,
+          sources: {
+            "darwin-arm64": {
+              directUrl:
+                "https://example.com/binaries/hugo_extended_1.2.3_darwin-universal.tar.gz",
+            },
+          },
+        };
+
+        // PATH check fails
+        mockInvoke.mockResolvedValueOnce(mockBinaryNotFound());
+        // Platform detection for getPluginBinPath
+        mockPlatform("darwin", "arm64");
+        // Plugin storage check fails
+        mockInvoke.mockResolvedValueOnce(false);
+        // Download - mkdir
+        mockInvoke.mockResolvedValueOnce({ success: true, exit_code: 0, stdout: "", stderr: "" });
+        // Download - curl
+        mockInvoke.mockResolvedValueOnce({ success: true, exit_code: 0, stdout: "", stderr: "" });
+        // Create bin directory
+        mockInvoke.mockResolvedValueOnce(undefined);
+        // Extract with tar
+        mockInvoke.mockResolvedValueOnce({ success: true, exit_code: 0, stdout: "", stderr: "" });
+        // chmod +x
+        mockInvoke.mockResolvedValueOnce({ success: true, exit_code: 0, stdout: "", stderr: "" });
+        // Cache release info
+        mockInvoke.mockResolvedValueOnce(undefined);
+        // Verify downloaded binary
+        mockInvoke.mockResolvedValueOnce(mockBinaryCheck("1.2.3"));
+
+        const progressCalls: string[] = [];
+        await resolveBinary(directUrlConfig, {
+          autoDownload: true,
+          onProgress: (phase, message) => progressCalls.push(`${phase}: ${message}`),
+        });
+
+        // Version should be extracted from URL
+        expect(progressCalls).toContain("download: Using direct download URL (v1.2.3)...");
+      });
+    });
+
     describe("GitHub release fetching", () => {
       it("handles rate limiting with cached fallback", async () => {
         // PATH check fails

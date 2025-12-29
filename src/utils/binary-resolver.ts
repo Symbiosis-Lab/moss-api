@@ -339,11 +339,14 @@ async function downloadBinary(
     const assetName = resolveAssetPattern(source.github.assetPattern, version, platform);
     downloadUrl = `https://github.com/${source.github.owner}/${source.github.repo}/releases/download/v${version}/${assetName}`;
   } else if (source.directUrl) {
-    // Use direct URL (version needs to be fetched separately or hardcoded)
-    throw new BinaryResolutionError(
-      "Direct URL downloads not yet implemented. Please use GitHub source.",
-      "download"
-    );
+    // Use direct URL - version is extracted from URL if possible
+    downloadUrl = source.directUrl;
+
+    // Try to extract version from URL (e.g., "/v0.152.2/" or "_0.152.2_")
+    const versionMatch = downloadUrl.match(/[/v_](\d+\.\d+\.\d+)[/_]/);
+    version = versionMatch ? versionMatch[1] : "unknown";
+
+    progress("download", `Using direct download URL (v${version})...`);
   } else {
     throw new BinaryResolutionError(
       `No download source configured for ${config.name}`,
