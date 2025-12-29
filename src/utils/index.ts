@@ -58,6 +58,36 @@ export {
   type ExecuteResult,
 } from "./binary";
 
+// Platform Detection
+export {
+  getPlatformInfo,
+  clearPlatformCache,
+  type OSType,
+  type ArchType,
+  type PlatformKey,
+  type PlatformInfo,
+} from "./platform";
+
+// Archive Extraction
+export {
+  extractArchive,
+  makeExecutable,
+  type ArchiveFormat,
+  type ExtractOptions,
+  type ExtractResult,
+} from "./archive";
+
+// Binary Resolution (auto-download external tools)
+export {
+  resolveBinary,
+  BinaryResolutionError,
+  type BinaryConfig,
+  type BinarySource,
+  type GitHubSource,
+  type BinaryResolution,
+  type ResolveBinaryOptions,
+} from "./binary-resolver";
+
 // Cookie Management
 export {
   getPluginCookie,
