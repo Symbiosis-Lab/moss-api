@@ -44,9 +44,11 @@ export {
 // HTTP
 export {
   fetchUrl,
+  httpPost,
   downloadAsset,
   type FetchOptions,
   type FetchResult,
+  type PostOptions,
   type DownloadOptions,
   type DownloadResult,
 } from "./http";
