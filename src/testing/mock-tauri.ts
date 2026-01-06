@@ -730,6 +730,34 @@ export function setupMockTauri(options?: SetupMockTauriOptions): MockTauriContex
         };
       }
 
+      case "http_post": {
+        // HTTP POST - similar to fetch_url but for POST requests
+        const url = payload?.url as string;
+        const response = urlConfig.getResponse(url);
+
+        if (response.delay) {
+          return new Promise((resolve) =>
+            setTimeout(
+              () =>
+                resolve({
+                  status: response.status,
+                  ok: response.ok,
+                  body_base64: response.bodyBase64 || "",
+                  content_type: response.contentType || null,
+                }),
+              response.delay
+            )
+          );
+        }
+
+        return {
+          status: response.status,
+          ok: response.ok,
+          body_base64: response.bodyBase64 || "",
+          content_type: response.contentType || null,
+        };
+      }
+
       case "download_asset": {
         const url = payload?.url as string;
         const targetDir = payload?.targetDir as string;

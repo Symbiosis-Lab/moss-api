@@ -131,6 +131,73 @@ export async function fetchUrl(
 }
 
 /**
+ * Options for HTTP POST requests
+ */
+export interface PostOptions {
+  /** Timeout in milliseconds (default: 30000) */
+  timeoutMs?: number;
+  /** Additional headers */
+  headers?: Record<string, string>;
+}
+
+/**
+ * Perform an HTTP POST request with JSON body
+ *
+ * Uses Rust's HTTP client to bypass browser CORS restrictions.
+ * This is useful for OAuth flows and other API interactions.
+ *
+ * @param url - URL to POST to
+ * @param body - JSON object to send as the request body
+ * @param options - Optional configuration including timeout and headers
+ * @returns Fetch result with status, body, and helpers
+ * @throws Error if network request fails
+ *
+ * @example
+ * ```typescript
+ * // GitHub OAuth device code request
+ * const result = await httpPost(
+ *   "https://github.com/login/device/code",
+ *   { client_id: "xxx", scope: "repo workflow" },
+ *   { headers: { Accept: "application/json" } }
+ * );
+ * if (result.ok) {
+ *   const data = JSON.parse(result.text());
+ * }
+ * ```
+ */
+export async function httpPost(
+  url: string,
+  body: Record<string, unknown>,
+  options: PostOptions = {}
+): Promise<FetchResult> {
+  const { timeoutMs = 30000, headers = {} } = options;
+
+  const result = await getTauriCore().invoke<TauriFetchResult>("http_post", {
+    url,
+    body: JSON.stringify(body),
+    headers,
+    timeoutMs,
+  });
+
+  // Decode base64 body to Uint8Array
+  const binaryString = atob(result.body_base64);
+  const bytes = new Uint8Array(binaryString.length);
+  for (let i = 0; i < binaryString.length; i++) {
+    bytes[i] = binaryString.charCodeAt(i);
+  }
+
+  return {
+    status: result.status,
+    ok: result.ok,
+    contentType: result.content_type,
+    body: bytes,
+    text(): string {
+      return new TextDecoder().decode(bytes);
+    },
+  };
+}
+
+/**
  * Download a URL and save directly to disk
  *
  * Downloads the file and writes it directly to disk without passing
