@@ -27,6 +27,8 @@ export interface ExecuteOptions {
   timeoutMs?: number;
   /** Additional environment variables */
   env?: Record<string, string>;
+  /** Data to pass to stdin (useful for commands like `git credential fill`) */
+  stdin?: string;
 }
 
 /**
@@ -98,7 +100,7 @@ export async function executeBinary(
   options: ExecuteOptions
 ): Promise<ExecuteResult> {
   const ctx = getInternalContext();
-  const { binaryPath, args, timeoutMs = 60000, env } = options;
+  const { binaryPath, args, timeoutMs = 60000, env, stdin } = options;
 
   const result = await getTauriCore().invoke<TauriBinaryResult>(
     "execute_binary",
@@ -108,6 +110,7 @@ export async function executeBinary(
       workingDir: ctx.project_path,
       timeoutMs,
       env,
+      stdinData: stdin,
     }
   );
 
