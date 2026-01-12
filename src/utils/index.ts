@@ -23,7 +23,7 @@ export {
 export { log, warn, error } from "./logger";
 
 // Browser
-export { openBrowser, closeBrowser } from "./browser";
+export { openBrowser, closeBrowser, openSystemBrowser, openBrowserWithHtml } from "./browser";
 
 // File System (project files)
 export {

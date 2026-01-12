@@ -385,8 +385,10 @@ export function createMockCookieStorage(): MockCookieStorage {
  * Tracks browser open/close calls for testing
  */
 export interface MockBrowserTracker {
-  /** URLs that were opened */
+  /** URLs that were opened in plugin browser */
   openedUrls: string[];
+  /** URLs that were opened in system browser */
+  systemBrowserUrls: string[];
   /** Number of times closeBrowser was called */
   closeCount: number;
   /** Whether browser is currently open */
@@ -400,12 +402,16 @@ export interface MockBrowserTracker {
  */
 export function createMockBrowserTracker(): MockBrowserTracker {
   const openedUrls: string[] = [];
+  const systemBrowserUrls: string[] = [];
   let closeCount = 0;
   let isOpen = false;
 
   return {
     get openedUrls() {
       return openedUrls;
+    },
+    get systemBrowserUrls() {
+      return systemBrowserUrls;
     },
     get closeCount() {
       return closeCount;
@@ -421,6 +427,7 @@ export function createMockBrowserTracker(): MockBrowserTracker {
     },
     reset() {
       openedUrls.length = 0;
+      systemBrowserUrls.length = 0;
       closeCount = 0;
       isOpen = false;
     },
@@ -831,6 +838,12 @@ export function setupMockTauri(options?: SetupMockTauriOptions): MockTauriContex
       case "close_plugin_browser": {
         (browserTracker as { closeCount: number }).closeCount++;
         (browserTracker as { isOpen: boolean }).isOpen = false;
+        return null;
+      }
+
+      case "open_system_browser": {
+        const url = payload?.url as string;
+        browserTracker.systemBrowserUrls.push(url);
         return null;
       }
 
