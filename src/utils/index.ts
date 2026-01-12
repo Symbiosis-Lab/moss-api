@@ -31,6 +31,7 @@ export {
   writeFile,
   listFiles,
   fileExists,
+  createSymlink,
 } from "./filesystem";
 
 // Plugin Storage (plugin's private directory)
