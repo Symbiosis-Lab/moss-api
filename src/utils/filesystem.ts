@@ -125,3 +125,33 @@ export async function fileExists(relativePath: string): Promise<boolean> {
     return false;
   }
 }
+
+/**
+ * Create a symbolic link in the project directory
+ *
+ * Creates a symlink that points from linkPath to targetPath.
+ * Both paths are relative to the project root.
+ * Creates parent directories if they don't exist.
+ *
+ * @param targetPath - Path to the original file (relative to project root)
+ * @param linkPath - Path where the symlink will be created (relative to project root)
+ * @throws Error if symlink cannot be created or called outside a hook
+ *
+ * @example
+ * ```typescript
+ * // Create a symlink from runtime/content/post.md -> 文章/post.md
+ * await createSymlink("文章/post.md", ".moss/.runtime/hugo/content/posts/post.md");
+ * ```
+ */
+export async function createSymlink(
+  targetPath: string,
+  linkPath: string
+): Promise<void> {
+  const ctx = getInternalContext();
+
+  await getTauriCore().invoke("create_project_symlink", {
+    projectPath: ctx.project_path,
+    targetPath,
+    linkPath,
+  });
+}
