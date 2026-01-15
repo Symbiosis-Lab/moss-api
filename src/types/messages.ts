@@ -34,5 +34,7 @@ export interface ErrorMessage {
 
 export interface CompleteMessage {
   type: "complete";
-  result: unknown;
+  success: boolean;
+  error?: string;
+  result?: unknown;
 }

@@ -69,7 +69,14 @@ export async function reportError(
 
 /**
  * Report completion to Moss
+ * @param success - Whether the operation succeeded
+ * @param result - Optional result data
+ * @param error - Optional error message (only used when success is false)
  */
-export async function reportComplete(result: unknown): Promise<void> {
-  await sendMessage({ type: "complete", result });
+export async function reportComplete(
+  success: boolean,
+  result?: unknown,
+  error?: string
+): Promise<void> {
+  await sendMessage({ type: "complete", success, error, result });
 }

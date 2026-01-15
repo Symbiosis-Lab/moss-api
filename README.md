@@ -67,8 +67,11 @@ await error("Something went wrong");
 // Report errors with context
 await reportError("Upload failed", "network", false);
 
-// Report completion with result
-await reportComplete({ url: "https://example.com" });
+// Report completion with success and result
+await reportComplete(true, { url: "https://example.com" });
+
+// Report completion with failure
+await reportComplete(false, undefined, "Deployment failed");
 ```
 
 ### Browser Utilities
@@ -130,7 +133,7 @@ if (isTauriAvailable()) {
 | `sendMessage(message)` | Send raw message to Moss |
 | `reportProgress(phase, current, total, message?)` | Report progress |
 | `reportError(error, context?, fatal?)` | Report error |
-| `reportComplete(result)` | Report completion |
+| `reportComplete(success, result?, error?)` | Report completion |
 | `log(message)` | Log info message |
 | `warn(message)` | Log warning message |
 | `error(message)` | Log error message |
