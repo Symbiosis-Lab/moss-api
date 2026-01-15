@@ -166,30 +166,50 @@ describe("Messaging Utilities", () => {
   });
 
   describe("reportComplete", () => {
-    it("sends complete message with result payload", async () => {
+    it("sends complete message with success and result", async () => {
       setMessageContext("plugin", "hook");
-      await reportComplete({ success: true, data: "result" });
+      await reportComplete(true, { data: "result" });
 
       expect(mockInvoke).toHaveBeenCalledWith("plugin_message", {
         pluginName: "plugin",
         hookName: "hook",
         message: {
           type: "complete",
-          result: { success: true, data: "result" },
+          success: true,
+          error: undefined,
+          result: { data: "result" },
         },
       });
     });
 
-    it("sends complete message with null result", async () => {
+    it("sends complete message with failure and error", async () => {
       setMessageContext("plugin", "hook");
-      await reportComplete(null);
+      await reportComplete(false, undefined, "Something went wrong");
 
       expect(mockInvoke).toHaveBeenCalledWith("plugin_message", {
         pluginName: "plugin",
         hookName: "hook",
         message: {
           type: "complete",
-          result: null,
+          success: false,
+          error: "Something went wrong",
+          result: undefined,
+        },
+      });
+    });
+
+    it("sends complete message with success and no result", async () => {
+      setMessageContext("plugin", "hook");
+      await reportComplete(true);
+
+      expect(mockInvoke).toHaveBeenCalledWith("plugin_message", {
+        pluginName: "plugin",
+        hookName: "hook",
+        message: {
+          type: "complete",
+          success: true,
+          error: undefined,
+          result: undefined,
         },
       });
     });

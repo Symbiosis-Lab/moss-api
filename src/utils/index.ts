@@ -118,6 +118,13 @@ export {
 // Toast Notifications
 export {
   showToast,
+  updateToast,
+  dismissToast,
   TOAST_EVENT,
-  type ToastType,
+  TOAST_UPDATE_EVENT,
+  TOAST_DISMISS_EVENT,
+  type ToastVariant,
+  type ToastAction,
+  type ToastOptions,
+  type ToastType, // deprecated
 } from "./toast";
