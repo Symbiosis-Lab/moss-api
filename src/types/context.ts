@@ -85,10 +85,26 @@ export interface DeploymentInfo {
 }
 
 /**
- * DNS target type for custom domain configuration
- * Provided by deploy plugins to configure DNS records
+ * A single DNS record provided by deploy plugins
  */
-export type DnsTarget =
-  | { type: "cname"; hostname: string }
-  | { type: "a"; ips: string[] }
-  | { type: "github-pages"; a_records: string[]; cname_target: string };
+export interface DnsRecord {
+  /** Record type: "A", "AAAA", "CNAME", "TXT", etc. */
+  record_type: string;
+  /** Record name: "@" for apex, "www", etc. */
+  name: string;
+  /** Record value: IP address or hostname */
+  value: string;
+  /** Optional TTL in seconds */
+  ttl?: number;
+}
+
+/**
+ * DNS configuration provided by deploy plugins
+ *
+ * Plugins are responsible for generating the appropriate DNS records
+ * for their platform. Moss just passes these through to DNS configuration.
+ */
+export interface DnsTarget {
+  /** List of DNS records to configure */
+  records: DnsRecord[];
+}

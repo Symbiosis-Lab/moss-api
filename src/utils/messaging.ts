@@ -39,8 +39,9 @@ export async function sendMessage(message: PluginMessage): Promise<void> {
       hookName: currentHookName,
       message,
     });
-  } catch {
-    // Silently fail - logging would be recursive
+  } catch (error) {
+    // Log errors - these are important for debugging serialization issues
+    console.error("❌ [SDK] Failed to send message:", message.type, "–", error);
   }
 }
 

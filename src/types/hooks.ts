@@ -1,63 +1,48 @@
 /**
  * Hook result types
+ *
+ * ## Architecture: Single Completion Path
+ *
+ * Plugins complete by returning a HookResult from their hook function.
+ * The runtime handles sending the completion message to Rust.
+ *
+ * - **Completion** = Return HookResult (flow control for moss)
+ * - **Toast** = Call showToast() (UX control by plugin)
+ *
+ * These are decoupled: plugins decide when/what to toast independently
+ * of completion signaling.
  */
 
 import type { DeploymentInfo } from "./context";
 
 /**
- * Toast outcome determines the visual style of the notification
- * - "success": Green/positive - operation completed successfully
- * - "info": Neutral/informational - nothing to do, or skipped
- * - "error": Red/negative - operation failed
- *
- * @deprecated Use showToast() from utils/toast instead
- */
-export type ToastOutcome = "success" | "info" | "error";
-
-/**
- * Toast notification to display to the user
- *
- * @deprecated Use showToast() from utils/toast instead.
- * The new API gives plugins full control over timing, actions, etc.
- *
- * @example
- * ```typescript
- * // Old way (deprecated)
- * return { success: true, toast: { outcome: "success", title: "Done!" } };
- *
- * // New way (recommended)
- * await showToast({ message: "Done!", variant: "success", duration: 5000 });
- * return { success: true };
- * ```
- */
-export interface Toast {
-  /** Visual style of the toast */
-  outcome: ToastOutcome;
-  /** Short display text (e.g., "🟢 Live!", "No changes to deploy") */
-  title: string;
-  /** Optional clickable URL (e.g., the deployed site URL) */
-  url?: string;
-}
-
-/**
  * Standard result returned from hook execution
  *
- * Design principle: Plugins control their own messaging.
- * - `success`: Whether the operation succeeded (for flow control)
- * - `message`: Detailed message for logs/debugging
- * - `toast`: DEPRECATED - use showToast() instead for full control
- * - `deployment`: Deployment info (for deploy hooks)
+ * ## Design Principles
+ *
+ * 1. **Single completion path**: Return value only, no explicit reporting
+ * 2. **Flow control only**: HookResult tells moss success/failure
+ * 3. **Decoupled UX**: Plugins call showToast() separately for notifications
+ *
+ * ## Usage Pattern
+ *
+ * ```typescript
+ * async function deploy(context): Promise<HookResult> {
+ *   // Do work...
+ *
+ *   // Show toast (plugin's choice of timing, message, style)
+ *   await showToast({ message: "Deployed!", variant: "success" });
+ *
+ *   // Return result (flow control only, no UX)
+ *   return { success: true, deployment: {...} };
+ * }
+ * ```
  */
 export interface HookResult {
   /** Whether the operation succeeded */
   success: boolean;
   /** Detailed message for logs/debugging */
   message?: string;
-  /**
-   * @deprecated Use showToast() from utils/toast instead.
-   * This field will be removed in a future version.
-   */
-  toast?: Toast;
   /** Deployment info (populated by deploy hooks) */
   deployment?: DeploymentInfo;
 }
