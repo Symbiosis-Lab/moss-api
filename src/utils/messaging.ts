@@ -1,9 +1,14 @@
 /**
  * Plugin messaging utilities for communicating with Moss
+ *
+ * Uses events (fire-and-forget) for log/progress messages to avoid
+ * blocking the IPC channel. Uses commands (request-response) for
+ * complete/error messages that require acknowledgment.
  */
 
 import type { PluginMessage } from "../types/messages";
 import { getTauriCore, isTauriAvailable } from "./tauri";
+import { emitEvent, isEventApiAvailable } from "./events";
 
 let currentPluginName = "";
 let currentHookName = "";
@@ -26,9 +31,29 @@ export function getMessageContext(): { pluginName: string; hookName: string } {
 
 /**
  * Send a message to Moss
- * Silently fails if Tauri is unavailable (useful for testing)
+ *
+ * Log and progress messages use events (fire-and-forget) to avoid blocking IPC.
+ * Complete and error messages use commands (request-response) for acknowledgment.
  */
 export async function sendMessage(message: PluginMessage): Promise<void> {
+  // For log and progress messages, use events (fire-and-forget)
+  if (message.type === "log" || message.type === "progress") {
+    if (!isEventApiAvailable()) {
+      return;
+    }
+    try {
+      await emitEvent("plugin-message", {
+        pluginName: currentPluginName,
+        hookName: currentHookName,
+        message,
+      });
+    } catch {
+      // Silently ignore event failures for non-critical messages
+    }
+    return;
+  }
+
+  // For complete/error messages, use commands (must be acknowledged)
   if (!isTauriAvailable()) {
     return;
   }

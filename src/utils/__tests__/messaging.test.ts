@@ -11,12 +11,15 @@ import {
 describe("Messaging Utilities", () => {
   const originalWindow = globalThis.window;
   let mockInvoke: ReturnType<typeof vi.fn>;
+  let mockEmit: ReturnType<typeof vi.fn>;
 
   beforeEach(() => {
     mockInvoke = vi.fn().mockResolvedValue(undefined);
+    mockEmit = vi.fn().mockResolvedValue(undefined);
     (globalThis as unknown as { window: unknown }).window = {
       __TAURI__: {
         core: { invoke: mockInvoke },
+        event: { emit: mockEmit, listen: vi.fn() },
       },
     };
     // Reset context
@@ -51,15 +54,30 @@ describe("Messaging Utilities", () => {
   });
 
   describe("sendMessage", () => {
-    it("invokes plugin_message command with correct args", async () => {
+    it("uses emit for log messages (fire-and-forget)", async () => {
       setMessageContext("test-plugin", "test-hook");
       await sendMessage({ type: "log", level: "log", message: "Hello" });
 
-      expect(mockInvoke).toHaveBeenCalledWith("plugin_message", {
+      // Log messages now use events, not commands
+      expect(mockEmit).toHaveBeenCalledWith("plugin-message", {
         pluginName: "test-plugin",
         hookName: "test-hook",
         message: { type: "log", level: "log", message: "Hello" },
       });
+      expect(mockInvoke).not.toHaveBeenCalled();
+    });
+
+    it("uses invoke for complete messages (must be acknowledged)", async () => {
+      setMessageContext("test-plugin", "test-hook");
+      await sendMessage({ type: "complete", success: true });
+
+      // Complete messages use commands for acknowledgment
+      expect(mockInvoke).toHaveBeenCalledWith("plugin_message", {
+        pluginName: "test-plugin",
+        hookName: "test-hook",
+        message: { type: "complete", success: true },
+      });
+      expect(mockEmit).not.toHaveBeenCalled();
     });
 
     it("silently fails when Tauri is unavailable", async () => {
@@ -69,22 +87,23 @@ describe("Messaging Utilities", () => {
       ).resolves.toBeUndefined();
     });
 
-    it("silently catches invoke errors", async () => {
+    it("silently catches invoke errors for complete messages", async () => {
       mockInvoke.mockRejectedValue(new Error("Invoke failed"));
       setMessageContext("plugin", "hook");
       // Should not throw
       await expect(
-        sendMessage({ type: "log", level: "log", message: "test" })
+        sendMessage({ type: "complete", success: false })
       ).resolves.toBeUndefined();
     });
   });
 
   describe("reportProgress", () => {
-    it("sends progress message with correct structure", async () => {
+    it("sends progress message via event (fire-and-forget)", async () => {
       setMessageContext("plugin", "hook");
       await reportProgress("building", 50, 100, "Half done");
 
-      expect(mockInvoke).toHaveBeenCalledWith("plugin_message", {
+      // Progress messages use events to avoid IPC congestion
+      expect(mockEmit).toHaveBeenCalledWith("plugin-message", {
         pluginName: "plugin",
         hookName: "hook",
         message: {
@@ -95,13 +114,14 @@ describe("Messaging Utilities", () => {
           message: "Half done",
         },
       });
+      expect(mockInvoke).not.toHaveBeenCalled();
     });
 
     it("sends progress message without optional message", async () => {
       setMessageContext("plugin", "hook");
       await reportProgress("scanning", 1, 10);
 
-      expect(mockInvoke).toHaveBeenCalledWith("plugin_message", {
+      expect(mockEmit).toHaveBeenCalledWith("plugin-message", {
         pluginName: "plugin",
         hookName: "hook",
         message: {
@@ -116,10 +136,11 @@ describe("Messaging Utilities", () => {
   });
 
   describe("reportError", () => {
-    it("sends error message with fatal=false by default", async () => {
+    it("sends error message via command (must be acknowledged)", async () => {
       setMessageContext("plugin", "hook");
       await reportError("Something failed", "deployment");
 
+      // Error messages use commands for acknowledgment
       expect(mockInvoke).toHaveBeenCalledWith("plugin_message", {
         pluginName: "plugin",
         hookName: "hook",
@@ -166,7 +187,7 @@ describe("Messaging Utilities", () => {
   });
 
   describe("reportComplete", () => {
-    it("sends complete message with success and result", async () => {
+    it("sends complete message with success and result via command", async () => {
       setMessageContext("plugin", "hook");
       await reportComplete(true, { data: "result" });
 
