@@ -27,10 +27,60 @@ export interface BaseContext {
 export interface BeforeBuildContext extends BaseContext {}
 
 /**
+ * A node in the universal Page Tree.
+ *
+ * Every markdown file and every folder produces one PageNode.
+ * Folders have is_folder=true and may have children.
+ * This is the universal intermediate representation consumed by
+ * both the built-in generator and SSG plugins.
+ */
+export interface PageNode {
+  /** Relative source path (e.g., "articles/hello.md" or "articles") */
+  source_path: string;
+  /** Output URL path (e.g., "articles/hello.html") */
+  url_path: string;
+  /** Page title (from frontmatter, H1, or filename) */
+  title: string;
+  /** URL-safe slug */
+  slug: string;
+  /** Rendered HTML content (empty string for auto-generated folder pages) */
+  content_html: string;
+
+  /** Whether this node represents a folder */
+  is_folder: boolean;
+  /** Child nodes (populated for folders) */
+  children: PageNode[];
+
+  /** Publication date (ISO string) */
+  date?: string;
+  /** Cover image path */
+  cover?: string;
+  /** Whether this page appears in header navigation */
+  nav: boolean;
+  /** Navigation ordering (lower = first) */
+  nav_weight?: number;
+  /** Don't generate page at all */
+  draft: boolean;
+  /** Generate page but hide from parent's child list */
+  unlisted: boolean;
+  /** Recursively list all nested content */
+  flatten: boolean;
+  /** How children display: "list", "grid", or "sidebar" */
+  list_style: "list" | "grid" | "sidebar";
+  /** Folder paths where this article also appears in child lists */
+  also_in: string[];
+
+  /** Raw frontmatter for plugin-specific fields */
+  frontmatter: Record<string, unknown>;
+}
+
+/**
  * Context for on_build hook (generator plugins)
  */
 export interface OnBuildContext extends BaseContext {
   source_files: SourceFiles;
+  /** Resolved Page Tree — universal content model for all generators */
+  page_tree?: PageNode;
 }
 
 /**
