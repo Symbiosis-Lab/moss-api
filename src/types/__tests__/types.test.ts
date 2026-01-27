@@ -17,6 +17,7 @@ import type {
   ProgressMessage,
   ErrorMessage,
   CompleteMessage,
+  PageNode,
 } from "../../index";
 
 describe("Type Definitions", () => {
@@ -71,6 +72,179 @@ describe("Type Definitions", () => {
       expect(manifest.icon).toBe("icon.svg");
       expect(manifest.domain).toBe("example.com");
       expect(manifest.config).toEqual({ key: "value", nested: { deep: true } });
+    });
+  });
+
+  describe("PageNode", () => {
+    it("accepts a leaf page node (markdown file)", () => {
+      const node: PageNode = {
+        source_path: "articles/hello.md",
+        url_path: "articles/hello.html",
+        title: "Hello World",
+        slug: "hello",
+        content_html: "<h1>Hello</h1>",
+        is_folder: false,
+        children: [],
+        date: "2025-01-15",
+        nav: false,
+        draft: false,
+        unlisted: false,
+        flatten: false,
+        list_style: "list",
+        also_in: [],
+        frontmatter: { custom_field: "value" },
+      };
+      expect(node.is_folder).toBe(false);
+      expect(node.children).toHaveLength(0);
+      expect(node.title).toBe("Hello World");
+      expect(node.content_html).toBe("<h1>Hello</h1>");
+    });
+
+    it("accepts a folder page node with children", () => {
+      const child: PageNode = {
+        source_path: "posts/first.md",
+        url_path: "posts/first.html",
+        title: "First Post",
+        slug: "first",
+        content_html: "<p>Content</p>",
+        is_folder: false,
+        children: [],
+        nav: false,
+        draft: false,
+        unlisted: false,
+        flatten: false,
+        list_style: "list",
+        also_in: [],
+        frontmatter: {},
+      };
+
+      const folder: PageNode = {
+        source_path: "posts",
+        url_path: "posts/index.html",
+        title: "Posts",
+        slug: "posts",
+        content_html: "",
+        is_folder: true,
+        children: [child],
+        nav: true,
+        nav_weight: 1,
+        draft: false,
+        unlisted: false,
+        flatten: false,
+        list_style: "list",
+        also_in: [],
+        frontmatter: {},
+      };
+      expect(folder.is_folder).toBe(true);
+      expect(folder.children).toHaveLength(1);
+      expect(folder.children[0].title).toBe("First Post");
+      expect(folder.nav_weight).toBe(1);
+    });
+
+    it("accepts a folder with flatten and grid list_style", () => {
+      const node: PageNode = {
+        source_path: "portfolio",
+        url_path: "portfolio/index.html",
+        title: "Portfolio",
+        slug: "portfolio",
+        content_html: "<p>My work</p>",
+        is_folder: true,
+        children: [],
+        nav: true,
+        draft: false,
+        unlisted: false,
+        flatten: true,
+        list_style: "grid",
+        also_in: [],
+        cover: "portfolio-cover.jpg",
+        frontmatter: {},
+      };
+      expect(node.flatten).toBe(true);
+      expect(node.list_style).toBe("grid");
+      expect(node.cover).toBe("portfolio-cover.jpg");
+    });
+
+    it("accepts a page with also_in cross-references", () => {
+      const node: PageNode = {
+        source_path: "articles/my-post.md",
+        url_path: "articles/my-post.html",
+        title: "My Post",
+        slug: "my-post",
+        content_html: "<p>Content</p>",
+        is_folder: false,
+        children: [],
+        nav: false,
+        draft: false,
+        unlisted: false,
+        flatten: false,
+        list_style: "list",
+        also_in: ["weekly-highlights", "best-of-2024"],
+        frontmatter: {},
+      };
+      expect(node.also_in).toHaveLength(2);
+      expect(node.also_in).toContain("weekly-highlights");
+    });
+
+    it("accepts optional fields as undefined", () => {
+      const node: PageNode = {
+        source_path: "about.md",
+        url_path: "about.html",
+        title: "About",
+        slug: "about",
+        content_html: "<p>About</p>",
+        is_folder: false,
+        children: [],
+        nav: true,
+        draft: false,
+        unlisted: false,
+        flatten: false,
+        list_style: "list",
+        also_in: [],
+        frontmatter: {},
+      };
+      expect(node.date).toBeUndefined();
+      expect(node.nav_weight).toBeUndefined();
+      expect(node.cover).toBeUndefined();
+    });
+  });
+
+  describe("OnBuildContext with page_tree", () => {
+    it("accepts OnBuildContext with optional page_tree field", () => {
+      const ctx: OnBuildContext = {
+        project_path: "/project",
+        moss_dir: "/project/.moss",
+        project_info: {
+          project_type: "blog",
+          content_folders: ["posts"],
+          total_files: 5,
+        },
+        config: {},
+        source_files: {
+          markdown: ["index.md"],
+          pages: [],
+          docx: [],
+          other: [],
+        },
+        page_tree: {
+          source_path: "",
+          url_path: "index.html",
+          title: "Home",
+          slug: "",
+          content_html: "<p>Welcome</p>",
+          is_folder: true,
+          children: [],
+          nav: false,
+          draft: false,
+          unlisted: false,
+          flatten: false,
+          list_style: "list",
+          also_in: [],
+          frontmatter: {},
+        },
+      };
+      expect(ctx.page_tree).toBeDefined();
+      expect(ctx.page_tree!.is_folder).toBe(true);
+      expect(ctx.page_tree!.title).toBe("Home");
     });
   });
 
