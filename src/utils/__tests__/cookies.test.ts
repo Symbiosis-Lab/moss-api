@@ -38,11 +38,19 @@ describe("Cookie Utilities", () => {
       });
     });
 
-    it("throws descriptive error when called outside hook", async () => {
+    it("returns null when called outside hook context", async () => {
+      // No context set - should return null instead of throwing
+      const result = await getPluginCookie();
+      expect(result).toBeNull();
+    });
+
+    it("returns null (not empty array) to distinguish from 'no cookies found'", async () => {
       // No context set
-      await expect(getPluginCookie()).rejects.toThrow(
-        /must be called from within a plugin hook/
-      );
+      const result = await getPluginCookie();
+      // null means "can't check cookies" (no context)
+      // [] means "checked but found nothing" (has context)
+      expect(result).toBeNull();
+      expect(result).not.toEqual([]);
     });
 
     it("returns array of cookies from backend", async () => {

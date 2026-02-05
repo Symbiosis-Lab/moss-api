@@ -9,7 +9,7 @@
  */
 
 import { getTauriCore } from "./tauri";
-import { getInternalContext } from "./context";
+import { getInternalContext, hasContext } from "./context";
 
 // ============================================================================
 // Types
@@ -39,22 +39,32 @@ export interface Cookie {
  * The plugin's identity is automatically detected from the runtime context.
  * Cookies are filtered by the domain declared in the plugin's manifest.json.
  *
- * **Must be called from within a plugin hook** (process, generate, deploy, syndicate).
- *
- * @returns Array of cookies for the plugin's registered domain
- * @throws Error if called outside of a plugin hook execution
+ * @returns Array of cookies for the plugin's registered domain, or `null` if
+ *          called outside of a plugin hook context.
  *
  * @example
  * ```typescript
  * // Inside a hook function:
  * const cookies = await getPluginCookie();
+ *
+ * // null means no context (e.g., window closed, hook ended)
+ * if (cookies === null) {
+ *   console.log("No plugin context - stopping");
+ *   return;
+ * }
+ *
  * const token = cookies.find(c => c.name === "__access_token");
  * if (token) {
  *   // Use token for authenticated requests
  * }
  * ```
  */
-export async function getPluginCookie(): Promise<Cookie[]> {
+export async function getPluginCookie(): Promise<Cookie[] | null> {
+  // Return null if called outside hook context (e.g., after window closed)
+  if (!hasContext()) {
+    return null;
+  }
+
   const ctx = getInternalContext();
 
   return getTauriCore().invoke<Cookie[]>("get_plugin_cookie", {
