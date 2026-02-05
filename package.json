@@ -1,6 +1,6 @@
 {
   "name": "@symbiosis-lab/moss-api",
-  "version": "0.7.7",
+  "version": "0.7.8",
   "description": "Official API for building Moss plugins - types and utilities for plugin development",
   "type": "module",
   "main": "./dist/index.mjs",
