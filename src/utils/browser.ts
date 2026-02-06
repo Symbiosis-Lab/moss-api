@@ -35,32 +35,68 @@ interface BrowserClosedEvent {
   reason: BrowserCloseReason;
 }
 
+/**
+ * Tauri event listen function type
+ */
+type TauriEventListen = (
+  event: string,
+  handler: (event: { payload: unknown }) => void
+) => Promise<() => void>;
+
 // ============================================================================
 // Internal helpers
 // ============================================================================
 
 /**
- * Get Tauri event API for listening to events
+ * Get Tauri event API for listening to and emitting events
  * @internal
  */
-function getTauriEventListen(): (
-  event: string,
-  handler: (event: { payload: unknown }) => void
-) => Promise<() => void> {
+function getTauriEvent(): { listen: TauriEventListen } {
   const w = window as unknown as {
     __TAURI__?: {
       event?: {
-        listen: (
-          event: string,
-          handler: (event: { payload: unknown }) => void
-        ) => Promise<() => void>;
+        listen: TauriEventListen;
       };
     };
   };
   if (!w.__TAURI__?.event?.listen) {
     throw new Error("Tauri event API not available");
   }
-  return w.__TAURI__.event.listen;
+  return w.__TAURI__.event;
+}
+
+// ============================================================================
+// Bridge Script
+// ============================================================================
+
+/**
+ * Bridge script that exposes `window.mossApi` in browser panel HTML.
+ * This decouples plugin HTML from Tauri internals.
+ * @internal
+ */
+const BROWSER_BRIDGE_SCRIPT = `<script>
+(function() {
+  const { event, core } = window.__TAURI__;
+  window.mossApi = {
+    submit: (data) => event.emit('moss:browser-form-submit', data),
+    cancel: () => event.emit('moss:browser-form-cancel', {}),
+    close: () => core.invoke('close_plugin_browser'),
+    emit: (name, payload) => event.emit(name, payload),
+  };
+})();
+</script>`;
+
+/**
+ * Inject the bridge script into HTML content.
+ * If HTML contains </head>, inject before it. Otherwise, prepend.
+ * @internal
+ */
+function injectBridgeScript(html: string): string {
+  const headCloseIdx = html.indexOf("</head>");
+  if (headCloseIdx !== -1) {
+    return html.slice(0, headCloseIdx) + BROWSER_BRIDGE_SCRIPT + html.slice(headCloseIdx);
+  }
+  return BROWSER_BRIDGE_SCRIPT + html;
 }
 
 // ============================================================================
@@ -95,7 +131,7 @@ export async function openBrowser(url: string): Promise<BrowserHandle> {
 
   // Create a promise that resolves when the browser-closed event is received
   const closed = new Promise<BrowserCloseReason>((resolve) => {
-    const listen = getTauriEventListen();
+    const { listen } = getTauriEvent();
 
     listen("browser-closed", (event) => {
       const payload = event.payload as BrowserClosedEvent;
@@ -136,6 +172,12 @@ export async function openSystemBrowser(url: string): Promise<void> {
 /**
  * Open the plugin browser with dynamic HTML content
  *
+ * Automatically injects a bridge script that exposes `window.mossApi` with:
+ * - `submit(data)` - emits `moss:browser-form-submit` event
+ * - `cancel()` - emits `moss:browser-form-cancel` event
+ * - `close()` - closes the browser panel
+ * - `emit(name, payload)` - escape hatch for custom events
+ *
  * Uses a custom protocol (moss-plugin://) to serve HTML content
  * without requiring the `webview-data-url` Cargo feature.
  *
@@ -145,13 +187,107 @@ export async function openSystemBrowser(url: string): Promise<void> {
  * await openBrowserWithHtml(`
  *   <!DOCTYPE html>
  *   <html>
+ *     <head><title>My Form</title></head>
  *     <body>
- *       <h1>Hello from plugin!</h1>
+ *       <form onsubmit="event.preventDefault(); window.mossApi.submit({ name: 'Alice' })">
+ *         <input name="name" />
+ *         <button type="submit">Submit</button>
+ *         <button type="button" onclick="window.mossApi.cancel()">Cancel</button>
+ *       </form>
  *     </body>
  *   </html>
  * `);
  * ```
  */
 export async function openBrowserWithHtml(html: string): Promise<void> {
-  await getTauriCore().invoke("set_plugin_browser_html", { html });
+  const injectedHtml = injectBridgeScript(html);
+  await getTauriCore().invoke("set_plugin_browser_html", { html: injectedHtml });
+}
+
+/**
+ * Show an HTML form in the browser panel and wait for the user to submit or cancel.
+ *
+ * The HTML should use `window.mossApi.submit(data)` to submit form data
+ * and `window.mossApi.cancel()` to cancel. The bridge script is automatically
+ * injected by `openBrowserWithHtml`.
+ *
+ * Returns the submitted data, or `null` if the user cancelled or the timeout expired.
+ * The browser is automatically closed in all cases.
+ *
+ * @param html - Raw HTML content with a form
+ * @param options - Optional configuration
+ * @param options.timeoutMs - Maximum time to wait (default: 300000ms / 5 minutes)
+ * @returns The submitted form data, or null on cancel/timeout
+ *
+ * @example
+ * ```typescript
+ * interface LoginData { username: string; password: string }
+ *
+ * const result = await showBrowserForm<LoginData>(`
+ *   <!DOCTYPE html>
+ *   <html>
+ *     <head><title>Login</title></head>
+ *     <body>
+ *       <form id="login">
+ *         <input id="user" placeholder="Username" />
+ *         <input id="pass" type="password" placeholder="Password" />
+ *         <button type="submit">Login</button>
+ *         <button type="button" onclick="window.mossApi.cancel()">Cancel</button>
+ *       </form>
+ *       <script>
+ *         document.getElementById('login').addEventListener('submit', (e) => {
+ *           e.preventDefault();
+ *           window.mossApi.submit({
+ *             username: document.getElementById('user').value,
+ *             password: document.getElementById('pass').value,
+ *           });
+ *         });
+ *       </script>
+ *     </body>
+ *   </html>
+ * `);
+ *
+ * if (result) {
+ *   console.log("User submitted:", result.username);
+ * } else {
+ *   console.log("User cancelled or timed out");
+ * }
+ * ```
+ */
+export async function showBrowserForm<T>(
+  html: string,
+  options?: { timeoutMs?: number }
+): Promise<T | null> {
+  const timeoutMs = options?.timeoutMs ?? 300000;
+  await openBrowserWithHtml(html);
+
+  const tauriEvent = getTauriEvent();
+  let settled = false;
+  let resolveResult: (value: T | null) => void;
+  const resultPromise = new Promise<T | null>((r) => {
+    resolveResult = r;
+  });
+
+  const timer = setTimeout(() => settle(null), timeoutMs);
+
+  const unlistenSubmit = await tauriEvent.listen(
+    "moss:browser-form-submit",
+    (e: { payload: unknown }) => settle(e.payload as T)
+  );
+  const unlistenCancel = await tauriEvent.listen(
+    "moss:browser-form-cancel",
+    () => settle(null)
+  );
+
+  function settle(value: T | null) {
+    if (settled) return;
+    settled = true;
+    clearTimeout(timer);
+    unlistenSubmit();
+    unlistenCancel();
+    closeBrowser();
+    resolveResult(value);
+  }
+
+  return resultPromise;
 }

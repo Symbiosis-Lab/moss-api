@@ -28,6 +28,7 @@ export {
   closeBrowser,
   openSystemBrowser,
   openBrowserWithHtml,
+  showBrowserForm,
   type BrowserHandle,
   type BrowserCloseReason,
 } from "./browser";
