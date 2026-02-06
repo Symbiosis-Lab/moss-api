@@ -848,45 +848,6 @@ export function setupMockTauri(options?: SetupMockTauriOptions): MockTauriContex
       }
 
       // ======================================================================
-      // Dialog Operations
-      // ======================================================================
-      case "show_plugin_dialog": {
-        const url = payload?.url as string;
-        const title = payload?.title as string;
-        const width = (payload?.width as number) ?? 500;
-        const height = (payload?.height as number) ?? 400;
-
-        // Track the dialog
-        (dialogTracker.shownDialogs as Array<{ url: string; title: string; width: number; height: number }>).push({
-          url,
-          title,
-          width,
-          height,
-        });
-
-        // If a next result is configured, return it immediately
-        if (dialogTracker.nextResult) {
-          const result = dialogTracker.nextResult;
-          (dialogTracker as { nextResult: MockDialogResult | null }).nextResult = null;
-          return result;
-        }
-
-        // Default to cancelled
-        return { type: "cancelled" };
-      }
-
-      case "submit_dialog_result": {
-        const dialogId = payload?.dialogId as string;
-        const result = payload?.result as MockDialogResult;
-
-        if (result) {
-          dialogTracker.submittedResults.set(dialogId, result);
-        }
-
-        return true;
-      }
-
-      // ======================================================================
       // Binary Execution
       // ======================================================================
       case "execute_binary": {

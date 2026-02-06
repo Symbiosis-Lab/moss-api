@@ -105,15 +105,6 @@ export {
   type Cookie,
 } from "./cookies";
 
-// Window/Dialog Management
-export {
-  showPluginDialog,
-  submitDialogResult,
-  cancelDialog,
-  type DialogResult,
-  type ShowDialogOptions,
-} from "./window";
-
 // Event Communication
 export {
   emitEvent,
