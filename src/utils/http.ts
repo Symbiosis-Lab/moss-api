@@ -192,6 +192,66 @@ export async function httpPost(
 }
 
 /**
+ * Options for HTTP GET requests
+ */
+export interface GetOptions {
+  /** Timeout in milliseconds (default: 30000) */
+  timeoutMs?: number;
+  /** Additional headers */
+  headers?: Record<string, string>;
+}
+
+/**
+ * Perform an HTTP GET request
+ *
+ * Uses Rust's HTTP client to bypass browser CORS restrictions.
+ * This is useful for API interactions that require custom headers.
+ *
+ * @param url - URL to GET
+ * @param options - Optional configuration including timeout and headers
+ * @returns Fetch result with status, body, and helpers
+ * @throws Error if network request fails
+ *
+ * @example
+ * ```typescript
+ * // Buttondown API newsletter info request
+ * const result = await httpGet(
+ *   "https://api.buttondown.com/v1/newsletters",
+ *   { headers: { Authorization: "Token xxx" } }
+ * );
+ * if (result.ok) {
+ *   const data = JSON.parse(result.text());
+ * }
+ * ```
+ */
+export async function httpGet(
+  url: string,
+  options: GetOptions = {}
+): Promise<FetchResult> {
+  const { timeoutMs = 30000, headers = {} } = options;
+
+  const result = await getTauriCore().invoke<TauriFetchResult>("http_get", {
+    url,
+    headers,
+    timeoutMs,
+  });
+
+  // Decode base64 body to Uint8Array using Uint8Array.from for better performance
+  const binaryString = atob(result.body_base64);
+  const bytes = Uint8Array.from(binaryString, (char) => char.charCodeAt(0));
+
+  return {
+    status: result.status,
+    ok: result.ok,
+    contentType: result.content_type,
+    body: bytes,
+    text(): string {
+      return new TextDecoder().decode(bytes);
+    },
+  };
+}
+
+/**
  * Download a URL and save directly to disk
  *
  * Downloads the file and writes it directly to disk without passing
