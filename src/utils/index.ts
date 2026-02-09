@@ -54,10 +54,12 @@ export {
 export {
   fetchUrl,
   httpPost,
+  httpGet,
   downloadAsset,
   type FetchOptions,
   type FetchResult,
   type PostOptions,
+  type GetOptions,
   type DownloadOptions,
   type DownloadResult,
 } from "./http";
