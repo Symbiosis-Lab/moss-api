@@ -116,6 +116,8 @@ export interface ArticleInfo {
   source_path: string;
   title: string;
   content: string;
+  /** Rendered HTML content (article body, no page template) */
+  html_content?: string;
   frontmatter: Record<string, unknown>;
   url_path: string;
   date?: string;
