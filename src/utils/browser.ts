@@ -72,14 +72,17 @@ function getTauriEvent(): { listen: TauriEventListen } {
 /**
  * Bridge script that exposes `window.mossApi` in browser panel HTML.
  * This decouples plugin HTML from Tauri internals.
+ *
+ * Provides explicit control over browser lifecycle:
+ * - `close()` - Closes the browser panel
+ * - `emit(name, payload)` - Emits custom events for plugin-specific communication
+ *
  * @internal
  */
 const BROWSER_BRIDGE_SCRIPT = `<script>
 (function() {
   const { event, core } = window.__TAURI__;
   window.mossApi = {
-    submit: (data) => event.emit('moss:browser-form-submit', data),
-    cancel: () => event.emit('moss:browser-form-cancel', {}),
     close: () => core.invoke('close_plugin_browser'),
     emit: (name, payload) => event.emit(name, payload),
   };
@@ -173,30 +176,50 @@ export async function openSystemBrowser(url: string): Promise<void> {
  * Open the plugin browser with dynamic HTML content
  *
  * Automatically injects a bridge script that exposes `window.mossApi` with:
- * - `submit(data)` - emits `moss:browser-form-submit` event
- * - `cancel()` - emits `moss:browser-form-cancel` event
  * - `close()` - closes the browser panel
- * - `emit(name, payload)` - escape hatch for custom events
+ * - `emit(name, payload)` - emits custom events for plugin-specific communication
  *
  * Uses a custom protocol (moss-plugin://) to serve HTML content
  * without requiring the `webview-data-url` Cargo feature.
  *
+ * **Manual lifecycle control:**
+ * After calling this function, the browser panel remains open until you explicitly
+ * call `closeBrowser()` or the user closes it. Use `listen()` to handle custom
+ * events emitted from the HTML.
+ *
  * @param html - Raw HTML content to display
  * @example
  * ```typescript
+ * import { openBrowserWithHtml, closeBrowser, listen } from "@symbiosis-lab/moss-api";
+ *
+ * // Open browser with custom HTML
  * await openBrowserWithHtml(`
  *   <!DOCTYPE html>
  *   <html>
  *     <head><title>My Form</title></head>
  *     <body>
- *       <form onsubmit="event.preventDefault(); window.mossApi.submit({ name: 'Alice' })">
- *         <input name="name" />
+ *       <form id="myForm">
+ *         <input id="nameInput" name="name" />
  *         <button type="submit">Submit</button>
- *         <button type="button" onclick="window.mossApi.cancel()">Cancel</button>
+ *         <button type="button" onclick="window.mossApi.close()">Cancel</button>
  *       </form>
+ *       <script>
+ *         document.getElementById('myForm').addEventListener('submit', (e) => {
+ *           e.preventDefault();
+ *           window.mossApi.emit('my-plugin:form-submit', {
+ *             name: document.getElementById('nameInput').value
+ *           });
+ *         });
+ *       </script>
  *     </body>
  *   </html>
  * `);
+ *
+ * // Listen for custom event from HTML
+ * const unlisten = await listen('my-plugin:form-submit', (event) => {
+ *   console.log('User submitted:', event.payload);
+ *   closeBrowser(); // Explicitly close when done
+ * });
  * ```
  */
 export async function openBrowserWithHtml(html: string): Promise<void> {
@@ -206,6 +229,37 @@ export async function openBrowserWithHtml(html: string): Promise<void> {
 
 /**
  * Show an HTML form in the browser panel and wait for the user to submit or cancel.
+ *
+ * @deprecated This function couples form lifecycle to moss internals through hidden event listeners.
+ * Use `openBrowserWithHtml()` + manual `closeBrowser()` instead for explicit control.
+ *
+ * **Migration guide:**
+ * ```typescript
+ * // OLD (deprecated):
+ * const result = await showBrowserForm<LoginData>(html);
+ * if (result) {
+ *   console.log("Submitted:", result);
+ * }
+ *
+ * // NEW (recommended):
+ * await openBrowserWithHtml(html);
+ *
+ * // Listen for custom event
+ * const unlisten = await listen<LoginData>("my-plugin:submit", (event) => {
+ *   console.log("Submitted:", event.payload);
+ *   closeBrowser();
+ * });
+ *
+ * // In your HTML:
+ * // <button onclick="window.mossApi.emit('my-plugin:submit', { username: '...' })">Submit</button>
+ * // <button onclick="window.mossApi.close()">Cancel</button>
+ * ```
+ *
+ * **Why migrate:**
+ * - Explicit browser lifecycle control (no magic auto-close)
+ * - No hidden event listeners (`moss:browser-form-submit`, `moss:browser-form-cancel`)
+ * - Simpler mental model: open, use, close
+ * - Matches modern plugin patterns (see Matters plugin)
  *
  * The HTML should use `window.mossApi.submit(data)` to submit form data
  * and `window.mossApi.cancel()` to cancel. The bridge script is automatically

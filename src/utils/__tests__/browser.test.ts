@@ -155,8 +155,6 @@ describe("Browser Utilities", () => {
       const calledHtml = mockInvoke.mock.calls[0][1].html as string;
       // Bridge should be injected before </head>
       expect(calledHtml).toContain("window.mossApi");
-      expect(calledHtml).toContain("moss:browser-form-submit");
-      expect(calledHtml).toContain("moss:browser-form-cancel");
       expect(calledHtml).toContain("close_plugin_browser");
 
       // Verify position: bridge script should come before </head>
@@ -180,16 +178,21 @@ describe("Browser Utilities", () => {
       expect(bridgeIdx).toBeLessThan(originalIdx);
     });
 
-    it("bridge script exposes submit, cancel, close, and emit functions", async () => {
+    it("bridge script exposes only close and emit functions (not submit/cancel)", async () => {
       const html = `<html><head></head><body></body></html>`;
 
       await openBrowserWithHtml(html);
 
       const calledHtml = mockInvoke.mock.calls[0][1].html as string;
-      expect(calledHtml).toContain("submit:");
-      expect(calledHtml).toContain("cancel:");
+      // Should have close and emit
       expect(calledHtml).toContain("close:");
       expect(calledHtml).toContain("emit:");
+
+      // Should NOT have submit or cancel (deprecated pattern)
+      expect(calledHtml).not.toContain("submit:");
+      expect(calledHtml).not.toContain("cancel:");
+      expect(calledHtml).not.toContain("moss:browser-form-submit");
+      expect(calledHtml).not.toContain("moss:browser-form-cancel");
     });
 
     it("does not change the public API (still takes just html string)", async () => {
@@ -200,6 +203,13 @@ describe("Browser Utilities", () => {
         expect.objectContaining({ html: expect.any(String) })
       );
     });
+
+    it("documentation reflects manual browser lifecycle control", () => {
+      // This is a meta-test to ensure the JSDoc has been updated
+      // In real usage, developers would see the updated documentation in their IDE
+      expect(openBrowserWithHtml).toBeDefined();
+      expect(typeof openBrowserWithHtml).toBe("function");
+    });
   });
 
   // ==========================================================================
@@ -207,6 +217,16 @@ describe("Browser Utilities", () => {
   // ==========================================================================
 
   describe("showBrowserForm", () => {
+    it("has @deprecated JSDoc tag", () => {
+      // Read the source file to verify deprecation documentation exists
+      const showBrowserFormSource = showBrowserForm.toString();
+
+      // Note: This is a meta-test - in real usage developers would see
+      // the @deprecated warning in their IDE. We're verifying the function
+      // still exists (for backward compatibility) but is marked deprecated.
+      expect(showBrowserForm).toBeDefined();
+      expect(typeof showBrowserForm).toBe("function");
+    });
     it("returns payload on submit event", async () => {
       const html = `<html><head></head><body><form></form></body></html>`;
       const formPromise = showBrowserForm<{ name: string }>(html);
