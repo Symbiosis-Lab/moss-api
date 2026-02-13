@@ -19,9 +19,6 @@ export {
   reportComplete,
 } from "./messaging";
 
-// Logging
-export { log, warn, error } from "./logger";
-
 // Browser
 export {
   openBrowser,
