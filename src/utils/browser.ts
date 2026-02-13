@@ -261,9 +261,9 @@ export async function openBrowserWithHtml(html: string): Promise<void> {
  * - Simpler mental model: open, use, close
  * - Matches modern plugin patterns (see Matters plugin)
  *
- * The HTML should use `window.mossApi.submit(data)` to submit form data
- * and `window.mossApi.cancel()` to cancel. The bridge script is automatically
- * injected by `openBrowserWithHtml`.
+ * Note: This deprecated function still listens for `moss:browser-form-submit` and
+ * `moss:browser-form-cancel` events for backward compatibility. New code should use
+ * `window.mossApi.emit('your-event', data)` and `window.mossApi.close()` instead.
  *
  * Returns the submitted data, or `null` if the user cancelled or the timeout expired.
  * The browser is automatically closed in all cases.
@@ -287,12 +287,12 @@ export async function openBrowserWithHtml(html: string): Promise<void> {
  *         <input id="user" placeholder="Username" />
  *         <input id="pass" type="password" placeholder="Password" />
  *         <button type="submit">Login</button>
- *         <button type="button" onclick="window.mossApi.cancel()">Cancel</button>
+ *         <button type="button" onclick="window.mossApi.close()">Cancel</button>
  *       </form>
  *       <script>
  *         document.getElementById('login').addEventListener('submit', (e) => {
  *           e.preventDefault();
- *           window.mossApi.submit({
+ *           window.mossApi.emit('moss:browser-form-submit', {
  *             username: document.getElementById('user').value,
  *             password: document.getElementById('pass').value,
  *           });
