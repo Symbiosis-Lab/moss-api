@@ -1,0 +1,238 @@
+import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
+import {
+  setMessageContext,
+  getMessageContext,
+  sendMessage,
+  reportProgress,
+  reportError,
+  reportComplete,
+} from "../messaging";
+
+describe("Messaging Utilities", () => {
+  const originalWindow = globalThis.window;
+  let mockInvoke: ReturnType<typeof vi.fn>;
+  let mockEmit: ReturnType<typeof vi.fn>;
+
+  beforeEach(() => {
+    mockInvoke = vi.fn().mockResolvedValue(undefined);
+    mockEmit = vi.fn().mockResolvedValue(undefined);
+    (globalThis as unknown as { window: unknown }).window = {
+      __TAURI__: {
+        core: { invoke: mockInvoke },
+        event: { emit: mockEmit, listen: vi.fn() },
+      },
+    };
+    // Reset context
+    setMessageContext("", "");
+  });
+
+  afterEach(() => {
+    (globalThis as unknown as { window: unknown }).window = originalWindow;
+  });
+
+  describe("setMessageContext / getMessageContext", () => {
+    it("stores and retrieves plugin context", () => {
+      setMessageContext("my-plugin", "on_deploy");
+      const ctx = getMessageContext();
+      expect(ctx.pluginName).toBe("my-plugin");
+      expect(ctx.hookName).toBe("on_deploy");
+    });
+
+    it("overwrites previous context", () => {
+      setMessageContext("first-plugin", "hook1");
+      setMessageContext("second-plugin", "hook2");
+      const ctx = getMessageContext();
+      expect(ctx.pluginName).toBe("second-plugin");
+      expect(ctx.hookName).toBe("hook2");
+    });
+
+    it("returns empty strings for unset context", () => {
+      const ctx = getMessageContext();
+      expect(ctx.pluginName).toBe("");
+      expect(ctx.hookName).toBe("");
+    });
+  });
+
+  describe("sendMessage", () => {
+    it("uses emit for log messages (fire-and-forget)", async () => {
+      setMessageContext("test-plugin", "test-hook");
+      await sendMessage({ type: "log", level: "log", message: "Hello" });
+
+      // Log messages now use events, not commands
+      expect(mockEmit).toHaveBeenCalledWith("plugin-message", {
+        pluginName: "test-plugin",
+        hookName: "test-hook",
+        message: { type: "log", level: "log", message: "Hello" },
+      });
+      expect(mockInvoke).not.toHaveBeenCalled();
+    });
+
+    it("uses invoke for complete messages (must be acknowledged)", async () => {
+      setMessageContext("test-plugin", "test-hook");
+      await sendMessage({ type: "complete", success: true });
+
+      // Complete messages use commands for acknowledgment
+      expect(mockInvoke).toHaveBeenCalledWith("plugin_message", {
+        pluginName: "test-plugin",
+        hookName: "test-hook",
+        message: { type: "complete", success: true },
+      });
+      expect(mockEmit).not.toHaveBeenCalled();
+    });
+
+    it("silently fails when Tauri is unavailable", async () => {
+      (globalThis as unknown as { window: unknown }).window = {};
+      await expect(
+        sendMessage({ type: "log", level: "log", message: "Hello" })
+      ).resolves.toBeUndefined();
+    });
+
+    it("silently catches invoke errors for complete messages", async () => {
+      mockInvoke.mockRejectedValue(new Error("Invoke failed"));
+      setMessageContext("plugin", "hook");
+      // Should not throw
+      await expect(
+        sendMessage({ type: "complete", success: false })
+      ).resolves.toBeUndefined();
+    });
+  });
+
+  describe("reportProgress", () => {
+    it("sends progress message via event (fire-and-forget)", async () => {
+      setMessageContext("plugin", "hook");
+      await reportProgress("building", 50, 100, "Half done");
+
+      // Progress messages use events to avoid IPC congestion
+      expect(mockEmit).toHaveBeenCalledWith("plugin-message", {
+        pluginName: "plugin",
+        hookName: "hook",
+        message: {
+          type: "progress",
+          phase: "building",
+          current: 50,
+          total: 100,
+          message: "Half done",
+        },
+      });
+      expect(mockInvoke).not.toHaveBeenCalled();
+    });
+
+    it("sends progress message without optional message", async () => {
+      setMessageContext("plugin", "hook");
+      await reportProgress("scanning", 1, 10);
+
+      expect(mockEmit).toHaveBeenCalledWith("plugin-message", {
+        pluginName: "plugin",
+        hookName: "hook",
+        message: {
+          type: "progress",
+          phase: "scanning",
+          current: 1,
+          total: 10,
+          message: undefined,
+        },
+      });
+    });
+  });
+
+  describe("reportError", () => {
+    it("sends error message via command (must be acknowledged)", async () => {
+      setMessageContext("plugin", "hook");
+      await reportError("Something failed", "deployment");
+
+      // Error messages use commands for acknowledgment
+      expect(mockInvoke).toHaveBeenCalledWith("plugin_message", {
+        pluginName: "plugin",
+        hookName: "hook",
+        message: {
+          type: "error",
+          error: "Something failed",
+          context: "deployment",
+          fatal: false,
+        },
+      });
+    });
+
+    it("sends error message with fatal=true when specified", async () => {
+      setMessageContext("plugin", "hook");
+      await reportError("Fatal error", "critical", true);
+
+      expect(mockInvoke).toHaveBeenCalledWith("plugin_message", {
+        pluginName: "plugin",
+        hookName: "hook",
+        message: {
+          type: "error",
+          error: "Fatal error",
+          context: "critical",
+          fatal: true,
+        },
+      });
+    });
+
+    it("sends error message without context", async () => {
+      setMessageContext("plugin", "hook");
+      await reportError("Error without context");
+
+      expect(mockInvoke).toHaveBeenCalledWith("plugin_message", {
+        pluginName: "plugin",
+        hookName: "hook",
+        message: {
+          type: "error",
+          error: "Error without context",
+          context: undefined,
+          fatal: false,
+        },
+      });
+    });
+  });
+
+  describe("reportComplete", () => {
+    it("sends complete message with success and result via command", async () => {
+      setMessageContext("plugin", "hook");
+      await reportComplete(true, { data: "result" });
+
+      expect(mockInvoke).toHaveBeenCalledWith("plugin_message", {
+        pluginName: "plugin",
+        hookName: "hook",
+        message: {
+          type: "complete",
+          success: true,
+          error: undefined,
+          result: { data: "result" },
+        },
+      });
+    });
+
+    it("sends complete message with failure and error", async () => {
+      setMessageContext("plugin", "hook");
+      await reportComplete(false, undefined, "Something went wrong");
+
+      expect(mockInvoke).toHaveBeenCalledWith("plugin_message", {
+        pluginName: "plugin",
+        hookName: "hook",
+        message: {
+          type: "complete",
+          success: false,
+          error: "Something went wrong",
+          result: undefined,
+        },
+      });
+    });
+
+    it("sends complete message with success and no result", async () => {
+      setMessageContext("plugin", "hook");
+      await reportComplete(true);
+
+      expect(mockInvoke).toHaveBeenCalledWith("plugin_message", {
+        pluginName: "plugin",
+        hookName: "hook",
+        message: {
+          type: "complete",
+          success: true,
+          error: undefined,
+          result: undefined,
+        },
+      });
+    });
+  });
+});
