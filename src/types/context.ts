@@ -91,6 +91,21 @@ export interface OnDeployContext extends BaseContext {
 }
 
 /**
+ * Context for configure_domain hook (custom domain setup on deploy platform)
+ *
+ * Called after DNS records are configured via moss-oracle. Allows deploy plugins
+ * to perform platform-specific domain setup (e.g., GitHub Pages CNAME configuration).
+ *
+ * This is NOT a separate capability - it's an optional hook on Deploy-capable plugins.
+ */
+export interface OnConfigureDomainContext extends BaseContext {
+  /** The custom domain being configured (e.g., "example.com") */
+  domain: string;
+  /** Deployment information from the last deploy */
+  deployment: DeploymentInfo;
+}
+
+/**
  * Context for after_deploy hook (syndicator plugins)
  */
 export interface AfterDeployContext extends BaseContext {
