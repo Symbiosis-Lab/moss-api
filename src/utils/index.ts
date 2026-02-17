@@ -37,6 +37,9 @@ export {
   listFiles,
   fileExists,
   createSymlink,
+  readSiteFile,
+  readProjectFileBase64,
+  listSourceFiles,
 } from "./filesystem";
 
 // Plugin Storage (plugin's private directory)

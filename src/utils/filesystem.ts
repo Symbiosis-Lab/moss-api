@@ -155,3 +155,69 @@ export async function createSymlink(
     linkPath,
   });
 }
+
+// ============================================================================
+// Deploy-oriented file access (base64, no path exposure)
+// ============================================================================
+
+/**
+ * Read a file from the compiled site directory (.moss/site/)
+ *
+ * Returns base64-encoded content. Used by deploy plugins to read
+ * site files without direct filesystem access.
+ *
+ * @param relativePath - Path relative to the site directory (e.g., "index.html")
+ * @returns Base64-encoded file content
+ * @throws Error if file cannot be read
+ *
+ * @example
+ * ```typescript
+ * const base64Content = await readSiteFile("index.html");
+ * const base64Image = await readSiteFile("assets/logo.png");
+ * ```
+ */
+export async function readSiteFile(relativePath: string): Promise<string> {
+  return getTauriCore().invoke<string>("read_site_file", { relativePath });
+}
+
+/**
+ * Read a file from the project root as base64
+ *
+ * Returns base64-encoded content. Used by deploy plugins for
+ * source file backup operations.
+ *
+ * @param relativePath - Path relative to the project root
+ * @returns Base64-encoded file content
+ * @throws Error if file cannot be read
+ *
+ * @example
+ * ```typescript
+ * const base64Content = await readProjectFileBase64("posts/article.md");
+ * ```
+ */
+export async function readProjectFileBase64(
+  relativePath: string
+): Promise<string> {
+  return getTauriCore().invoke<string>("read_project_file_base64", {
+    relativePath,
+  });
+}
+
+/**
+ * List source files in the project directory
+ *
+ * Returns relative paths of non-hidden files, excluding build artifacts
+ * (.moss/, .git/, node_modules/). Used by deploy plugins for source backup.
+ *
+ * @returns Array of relative file paths
+ * @throws Error if listing fails
+ *
+ * @example
+ * ```typescript
+ * const sourceFiles = await listSourceFiles();
+ * // ["index.md", "posts/hello.md", "assets/logo.png"]
+ * ```
+ */
+export async function listSourceFiles(): Promise<string[]> {
+  return getTauriCore().invoke<string[]>("list_source_files", {});
+}
