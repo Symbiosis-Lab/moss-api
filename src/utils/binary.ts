@@ -29,6 +29,8 @@ export interface ExecuteOptions {
   env?: Record<string, string>;
   /** Data to pass to stdin (useful for commands like `git credential fill`) */
   stdin?: string;
+  /** Working directory relative to project root (default: project root itself) */
+  workingDir?: string;
 }
 
 /**
@@ -100,14 +102,18 @@ export async function executeBinary(
   options: ExecuteOptions
 ): Promise<ExecuteResult> {
   const ctx = getInternalContext();
-  const { binaryPath, args, timeoutMs = 60000, env, stdin } = options;
+  const { binaryPath, args, timeoutMs = 60000, env, stdin, workingDir } = options;
+
+  const resolvedWorkingDir = workingDir
+    ? `${ctx.project_path}/${workingDir}`
+    : ctx.project_path;
 
   const result = await getTauriCore().invoke<TauriBinaryResult>(
     "execute_binary",
     {
       binaryPath,
       args,
-      workingDir: ctx.project_path,
+      workingDir: resolvedWorkingDir,
       timeoutMs,
       env,
       stdinData: stdin,
