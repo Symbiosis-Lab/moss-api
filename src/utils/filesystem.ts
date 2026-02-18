@@ -221,3 +221,74 @@ export async function readProjectFileBase64(
 export async function listSourceFiles(): Promise<string[]> {
   return getTauriCore().invoke<string[]>("list_source_files", {});
 }
+
+// ============================================================================
+// Site operations (heavy I/O in Rust, no JS memory pressure)
+// ============================================================================
+
+/** File path and size from the compiled site directory */
+export interface SiteFileInfo {
+  path: string;
+  size: number;
+}
+
+/** Raw result from Rust http_post_site_file command */
+export interface SitePostResult {
+  status: number;
+  ok: boolean;
+  body_base64: string;
+  content_type: string | null;
+}
+
+/**
+ * Compute a git-compatible blob SHA-1 hash of a site file
+ *
+ * The hash is computed in Rust using streaming I/O, so the file
+ * never enters JavaScript memory. Produces hashes identical to
+ * `git hash-object`.
+ *
+ * @param relativePath - Path relative to .moss/site/
+ * @returns Hex-encoded SHA-1 hash
+ */
+export async function hashSiteFile(relativePath: string): Promise<string> {
+  return getTauriCore().invoke<string>("hash_site_file", { relativePath });
+}
+
+/**
+ * List all files in the compiled site directory with their sizes
+ *
+ * @returns Array of file info objects with path and size in bytes
+ */
+export async function listSiteFilesWithSizes(): Promise<SiteFileInfo[]> {
+  return getTauriCore().invoke<SiteFileInfo[]>("list_site_files_with_sizes", {});
+}
+
+/**
+ * Upload a site file via HTTP POST, with the file read and encoded in Rust
+ *
+ * The file is read from .moss/site/, base64-encoded, and substituted into
+ * the body template (replacing "$BASE64"). The request is sent via ureq
+ * in Rust, so large files never enter JavaScript memory.
+ *
+ * @param relativePath - Path relative to .moss/site/
+ * @param url - The URL to POST to
+ * @param headers - HTTP headers to include
+ * @param bodyTemplate - JSON body with "$BASE64" placeholder
+ * @param timeoutMs - Optional timeout in milliseconds (default: 120000)
+ * @returns Raw response with status, ok, body_base64, content_type
+ */
+export async function httpPostSiteFile(
+  relativePath: string,
+  url: string,
+  headers: Record<string, string>,
+  bodyTemplate: string,
+  timeoutMs?: number,
+): Promise<SitePostResult> {
+  return getTauriCore().invoke<SitePostResult>("http_post_site_file", {
+    relativePath,
+    url,
+    headers,
+    bodyTemplate,
+    timeoutMs: timeoutMs ?? null,
+  });
+}

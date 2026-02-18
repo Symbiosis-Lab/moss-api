@@ -40,6 +40,11 @@ export {
   readSiteFile,
   readProjectFileBase64,
   listSourceFiles,
+  hashSiteFile,
+  listSiteFilesWithSizes,
+  httpPostSiteFile,
+  type SiteFileInfo,
+  type SitePostResult,
 } from "./filesystem";
 
 // Plugin Storage (plugin's private directory)
