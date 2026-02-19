@@ -104,6 +104,10 @@ export {
   type GitHubSource,
   type BinaryResolution,
   type ResolveBinaryOptions,
+  type ArchiveFormat as BinaryArchiveFormat,
+  type ArchiveLayout,
+  type VersionCheck,
+  type ResolutionSource,
 } from "./binary-resolver";
 
 // Cookie Management
