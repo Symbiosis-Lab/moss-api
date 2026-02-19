@@ -620,6 +620,44 @@ export function setupMockTauri(options?: SetupMockTauriOptions): MockTauriContex
   const browserTracker = createMockBrowserTracker();
   const dialogTracker = createMockDialogTracker();
 
+  // ── Mock event system (listen / emit) ──────────────────────────────────
+  type EventHandler = (event: { payload: unknown }) => void;
+  const eventListeners = new Map<string, Set<EventHandler>>();
+
+  /** Register a listener; returns an unlisten function */
+  const listen = async (
+    event: string,
+    handler: EventHandler
+  ): Promise<() => void> => {
+    if (!eventListeners.has(event)) {
+      eventListeners.set(event, new Set());
+    }
+    eventListeners.get(event)!.add(handler);
+    return () => {
+      eventListeners.get(event)?.delete(handler);
+    };
+  };
+
+  /** Emit an event to all registered listeners */
+  const emit = async (event: string, payload?: unknown): Promise<void> => {
+    const handlers = eventListeners.get(event);
+    if (handlers) {
+      for (const handler of handlers) {
+        handler({ payload });
+      }
+    }
+  };
+
+  /** Internal helper: emit to listeners synchronously (used by invoke handlers) */
+  const emitToListeners = (event: string, payload: unknown): void => {
+    const handlers = eventListeners.get(event);
+    if (handlers) {
+      for (const handler of handlers) {
+        handler({ payload });
+      }
+    }
+  };
+
   // Create invoke handler
   const invoke = async (cmd: string, args?: InvokeArgs): Promise<unknown> => {
     const payload = args as Record<string, unknown> | undefined;
@@ -853,7 +891,16 @@ export function setupMockTauri(options?: SetupMockTauriOptions): MockTauriContex
       case "execute_binary": {
         const binaryPath = payload?.binaryPath as string;
         const binaryArgs = payload?.args as string[];
+        const streamId = payload?.streamId as string | undefined;
         const result = binaryConfig.getResult(binaryPath, binaryArgs);
+
+        // When streamId is provided, emit binary-output events for each stderr line
+        if (streamId && result.stderr) {
+          const lines = result.stderr.split("\n").filter((l) => l.length > 0);
+          for (const line of lines) {
+            emitToListeners("binary-output", { streamId, line });
+          }
+        }
 
         return {
           success: result.success,
@@ -878,35 +925,30 @@ export function setupMockTauri(options?: SetupMockTauriOptions): MockTauriContex
   };
 
   // Set up window.__TAURI__ directly (moss-api checks for this)
-  const w = globalThis as unknown as {
-    window?: {
-      __TAURI__?: { core?: { invoke: typeof invoke } };
-      __MOSS_INTERNAL_CONTEXT__?: {
-        plugin_name: string;
-        project_path: string;
-        moss_dir: string;
-      };
+  interface MockTauriWindow {
+    __TAURI__?: {
+      core?: { invoke: typeof invoke };
+      event?: { listen: typeof listen; emit: typeof emit };
     };
-  };
+    __MOSS_INTERNAL_CONTEXT__?: {
+      plugin_name: string;
+      project_path: string;
+      moss_dir: string;
+    };
+  }
+
+  const w = globalThis as unknown as { window?: MockTauriWindow };
 
   // Ensure window exists (for Node.js environments like happy-dom)
   if (typeof w.window === "undefined") {
     (globalThis as unknown as { window: object }).window = {};
   }
 
-  const win = (globalThis as unknown as {
-    window: {
-      __TAURI__?: { core?: { invoke: typeof invoke } };
-      __MOSS_INTERNAL_CONTEXT__?: {
-        plugin_name: string;
-        project_path: string;
-        moss_dir: string;
-      };
-    };
-  }).window;
+  const win = (globalThis as unknown as { window: MockTauriWindow }).window;
 
   win.__TAURI__ = {
     core: { invoke },
+    event: { listen, emit },
   };
 
   // Set up internal context for context-aware APIs
@@ -937,6 +979,7 @@ export function setupMockTauri(options?: SetupMockTauriOptions): MockTauriContex
       cookieStorage.clear();
       browserTracker.reset();
       dialogTracker.reset();
+      eventListeners.clear();
     },
   };
 }

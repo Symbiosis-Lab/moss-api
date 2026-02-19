@@ -10,6 +10,7 @@
 
 import { getTauriCore } from "./tauri";
 import { getInternalContext } from "./context";
+import { onEvent } from "./events";
 
 // ============================================================================
 // Types
@@ -31,6 +32,13 @@ export interface ExecuteOptions {
   stdin?: string;
   /** Working directory relative to project root (default: project root itself) */
   workingDir?: string;
+  /**
+   * Callback for real-time stderr output. When provided, stderr lines are
+   * streamed from the Rust backend via Tauri events as they are produced.
+   * Useful for long-running processes like `git push` where you want to
+   * show progress to the user.
+   */
+  onStderr?: (line: string) => void;
 }
 
 /**
@@ -56,6 +64,12 @@ interface TauriBinaryResult {
   exit_code: number;
   stdout: string;
   stderr: string;
+}
+
+/** Payload shape emitted by Rust for real-time stderr streaming */
+interface BinaryOutputEvent {
+  streamId: string;
+  line: string;
 }
 
 // ============================================================================
@@ -102,28 +116,47 @@ export async function executeBinary(
   options: ExecuteOptions
 ): Promise<ExecuteResult> {
   const ctx = getInternalContext();
-  const { binaryPath, args, timeoutMs = 60000, env, stdin, workingDir } = options;
+  const { binaryPath, args, timeoutMs = 60000, env, stdin, workingDir, onStderr } = options;
 
   const resolvedWorkingDir = workingDir
     ? `${ctx.project_path}/${workingDir}`
     : ctx.project_path;
 
-  const result = await getTauriCore().invoke<TauriBinaryResult>(
-    "execute_binary",
-    {
-      binaryPath,
-      args,
-      workingDir: resolvedWorkingDir,
-      timeoutMs,
-      env,
-      stdinData: stdin,
-    }
-  );
+  // When onStderr is provided, set up real-time stderr streaming
+  const streamId = onStderr ? crypto.randomUUID() : undefined;
+  let unlisten: (() => void) | undefined;
 
-  return {
-    success: result.success,
-    exitCode: result.exit_code,
-    stdout: result.stdout,
-    stderr: result.stderr,
-  };
+  if (onStderr && streamId) {
+    unlisten = await onEvent<BinaryOutputEvent>("binary-output", (payload) => {
+      if (payload.streamId === streamId) {
+        onStderr(payload.line);
+      }
+    });
+  }
+
+  try {
+    const result = await getTauriCore().invoke<TauriBinaryResult>(
+      "execute_binary",
+      {
+        binaryPath,
+        args,
+        workingDir: resolvedWorkingDir,
+        timeoutMs,
+        env,
+        stdinData: stdin,
+        streamId,
+      }
+    );
+
+    return {
+      success: result.success,
+      exitCode: result.exit_code,
+      stdout: result.stdout,
+      stderr: result.stderr,
+    };
+  } finally {
+    if (unlisten) {
+      unlisten();
+    }
+  }
 }
