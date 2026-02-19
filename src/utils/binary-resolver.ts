@@ -197,8 +197,8 @@ export async function resolveBinary(
     const { invoke } = await import("@tauri-apps/api/core");
     const result = await invoke<BinaryResolution>("resolve_binary_command", {
       config,
-      configured_path: configuredPath ?? null,
-      auto_download: autoDownload,
+      configuredPath: configuredPath ?? null,
+      autoDownload,
     });
     return result;
   } catch (error) {
