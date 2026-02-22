@@ -40,11 +40,8 @@ export {
   readSiteFile,
   readProjectFileBase64,
   listSourceFiles,
-  hashSiteFile,
   listSiteFilesWithSizes,
-  httpPostSiteFile,
   type SiteFileInfo,
-  type SitePostResult,
 } from "./filesystem";
 
 // Plugin Storage (plugin's private directory)
@@ -85,15 +82,6 @@ export {
   type PlatformKey,
   type PlatformInfo,
 } from "./platform";
-
-// Archive Extraction
-export {
-  extractArchive,
-  makeExecutable,
-  type ArchiveFormat,
-  type ExtractOptions,
-  type ExtractResult,
-} from "./archive";
 
 // Binary Resolution (auto-download external tools)
 export {
