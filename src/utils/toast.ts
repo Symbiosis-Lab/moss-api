@@ -92,13 +92,13 @@ export type ToastType = ToastVariant;
 // =============================================================================
 
 /** Event for showing a new toast */
-export const TOAST_EVENT = "plugin-toast";
+export const TOAST_EVENT = "show-toast";
 
 /** Event for updating an existing toast by ID */
-export const TOAST_UPDATE_EVENT = "plugin-toast-update";
+export const TOAST_UPDATE_EVENT = "show-toast-update";
 
 /** Event for dismissing a toast by ID */
-export const TOAST_DISMISS_EVENT = "plugin-toast-dismiss";
+export const TOAST_DISMISS_EVENT = "show-toast-dismiss";
 
 // =============================================================================
 // Functions
