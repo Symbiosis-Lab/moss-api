@@ -97,6 +97,22 @@ export interface OnDeployContext extends BaseContext {
  * to perform platform-specific domain setup (e.g., GitHub Pages CNAME configuration).
  *
  * This is NOT a separate capability - it's an optional hook on Deploy-capable plugins.
+ *
+ * ## Idempotency Contract
+ *
+ * The domain orchestrator calls this hook at multiple lifecycle points:
+ * 1. After DNS records are configured (site may not be live yet)
+ * 2. After the site is verified live via HTTP 200
+ *
+ * **Plugins MUST implement this hook as idempotent.** The plugin should:
+ * - Check current platform state
+ * - Do only the next needed step
+ * - Return success as a no-op if already fully configured
+ *
+ * Example (GitHub Pages):
+ * - Call 1: Sets CNAME file via API
+ * - Call 2: Verifies CNAME is set, enforces HTTPS via API
+ * - Call 3+: Both already done, returns success without changes
  */
 export interface OnConfigureDomainContext extends BaseContext {
   /** The custom domain being configured (e.g., "example.com") */
