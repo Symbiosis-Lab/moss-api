@@ -7,6 +7,7 @@ export interface ProjectInfo {
   content_folders: string[];
   total_files: number;
   homepage_file?: string;
+  site_name?: string;
 }
 
 export interface PluginManifest {

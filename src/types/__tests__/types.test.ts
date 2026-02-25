@@ -28,11 +28,13 @@ describe("Type Definitions", () => {
         content_folders: ["posts", "pages"],
         total_files: 10,
         homepage_file: "index.md",
+        site_name: "My Blog",
       };
       expect(info.project_type).toBe("blog");
       expect(info.content_folders).toHaveLength(2);
       expect(info.total_files).toBe(10);
       expect(info.homepage_file).toBe("index.md");
+      expect(info.site_name).toBe("My Blog");
     });
 
     it("accepts ProjectInfo without optional homepage_file", () => {
@@ -271,6 +273,7 @@ describe("Type Definitions", () => {
       project_type: "blog",
       content_folders: ["posts"],
       total_files: 5,
+      site_name: "My Blog",
     };
 
     it("accepts valid BaseContext", () => {
