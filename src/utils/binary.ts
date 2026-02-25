@@ -1,5 +1,5 @@
 /**
- * Binary execution for Moss plugins
+ * Binary execution for moss plugins
  *
  * Allows plugins to execute external binaries (git, npm, etc.)
  * in a controlled environment.

@@ -1,9 +1,9 @@
 /**
- * Plugin message types for communication with Moss
+ * Plugin message types for communication with moss
  */
 
 /**
- * Messages that plugins can send to Moss
+ * Messages that plugins can send to moss
  */
 export type PluginMessage =
   | LogMessage

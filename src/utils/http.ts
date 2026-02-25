@@ -1,5 +1,5 @@
 /**
- * HTTP operations for Moss plugins
+ * HTTP operations for moss plugins
  *
  * These functions provide HTTP capabilities that bypass browser CORS
  * restrictions by using Rust's HTTP client under the hood.

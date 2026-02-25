@@ -1,5 +1,5 @@
 /**
- * File system operations for Moss plugins
+ * File system operations for moss plugins
  *
  * These functions provide access to project files (user content).
  * Project path is auto-detected from the runtime context.

@@ -1,5 +1,5 @@
 /**
- * Internal context utilities for Moss plugins
+ * Internal context utilities for moss plugins
  *
  * This module provides access to the plugin execution context that is
  * set by the plugin runtime before each hook execution.

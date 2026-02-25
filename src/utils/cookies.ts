@@ -1,5 +1,5 @@
 /**
- * Cookie management for Moss plugins
+ * Cookie management for moss plugins
  *
  * Allows plugins to store and retrieve authentication cookies
  * for external services (e.g., Matters.town, GitHub).

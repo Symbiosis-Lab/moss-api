@@ -1,5 +1,5 @@
 /**
- * Platform detection utilities for Moss plugins
+ * Platform detection utilities for moss plugins
  *
  * Detects the current operating system and architecture to enable
  * platform-specific binary downloads and operations.

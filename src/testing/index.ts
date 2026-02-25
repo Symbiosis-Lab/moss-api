@@ -1,5 +1,5 @@
 /**
- * Testing utilities for Moss plugins
+ * Testing utilities for moss plugins
  *
  * This module provides mock implementations of Tauri IPC commands,
  * enabling integration testing of plugins without a running Tauri app.

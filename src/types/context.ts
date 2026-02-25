@@ -185,7 +185,7 @@ export interface DnsRecord {
  * DNS configuration provided by deploy plugins
  *
  * Plugins are responsible for generating the appropriate DNS records
- * for their platform. Moss just passes these through to DNS configuration.
+ * for their platform. moss just passes these through to DNS configuration.
  */
 export interface DnsTarget {
   /** List of DNS records to configure */

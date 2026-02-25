@@ -4,7 +4,7 @@
 [![codecov](https://codecov.io/gh/Symbiosis-Lab/moss-api/branch/main/graph/badge.svg)](https://codecov.io/gh/Symbiosis-Lab/moss-api)
 [![npm version](https://badge.fury.io/js/%40symbiosis-lab%2Fmoss-api.svg)](https://www.npmjs.com/package/@symbiosis-lab/moss-api)
 
-Official API for building Moss plugins. Provides types and utilities for plugin development.
+Official API for building moss plugins. Provides types and utilities for plugin development.
 
 ## Installation
 
@@ -130,7 +130,7 @@ if (isTauriAvailable()) {
 | `isTauriAvailable()` | Check if Tauri is available |
 | `setMessageContext(pluginName, hookName)` | Set context for messages |
 | `getMessageContext()` | Get current message context |
-| `sendMessage(message)` | Send raw message to Moss |
+| `sendMessage(message)` | Send raw message to moss |
 | `reportProgress(phase, current, total, message?)` | Report progress |
 | `reportError(error, context?, fatal?)` | Report error |
 | `reportComplete(success, result?, error?)` | Report completion |

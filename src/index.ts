@@ -1,7 +1,7 @@
 /**
- * Moss Plugin SDK
+ * moss Plugin SDK
  *
- * Shared types and utilities for Moss plugins.
+ * Shared types and utilities for moss plugins.
  *
  * @example
  * ```typescript

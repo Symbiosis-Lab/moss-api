@@ -1,5 +1,5 @@
 /**
- * Plugin storage API for Moss plugins
+ * Plugin storage API for moss plugins
  *
  * Provides access to a plugin's private storage directory at:
  * .moss/plugins/{plugin-name}/

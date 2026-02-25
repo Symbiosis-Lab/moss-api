@@ -1,5 +1,5 @@
 /**
- * Plugin messaging utilities for communicating with Moss
+ * Plugin messaging utilities for communicating with moss
  *
  * Uses events (fire-and-forget) for log/progress messages to avoid
  * blocking the IPC channel. Uses commands (request-response) for
@@ -30,7 +30,7 @@ export function getMessageContext(): { pluginName: string; hookName: string } {
 }
 
 /**
- * Send a message to Moss
+ * Send a message to moss
  *
  * Log and progress messages use events (fire-and-forget) to avoid blocking IPC.
  * Complete and error messages use commands (request-response) for acknowledgment.
@@ -71,7 +71,7 @@ export async function sendMessage(message: PluginMessage): Promise<void> {
 }
 
 /**
- * Report progress to Moss
+ * Report progress to moss
  */
 export async function reportProgress(
   phase: string,
@@ -83,7 +83,7 @@ export async function reportProgress(
 }
 
 /**
- * Report an error to Moss
+ * Report an error to moss
  */
 export async function reportError(
   error: string,
@@ -94,7 +94,7 @@ export async function reportError(
 }
 
 /**
- * Report completion to Moss
+ * Report completion to moss
  * @param success - Whether the operation succeeded
  * @param result - Optional result data
  * @param error - Optional error message (only used when success is false)

@@ -1,5 +1,5 @@
 /**
- * Binary resolver for Moss plugins
+ * Binary resolver for moss plugins
  *
  * Thin wrapper around the Rust-side unified binary resolver exposed via Tauri command.
  * All resolution logic (PATH lookup, cache check, download, extraction) happens in Rust.

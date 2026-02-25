@@ -1,5 +1,5 @@
 /**
- * Tauri IPC mocking utilities for testing Moss plugins
+ * Tauri IPC mocking utilities for testing moss plugins
  *
  * Provides in-memory implementations of Tauri IPC commands that plugins use
  * through moss-api. This enables integration testing without a running Tauri app.

@@ -1,5 +1,5 @@
 /**
- * Base plugin types shared across all Moss plugins
+ * Base plugin types shared across all moss plugins
  */
 
 export interface ProjectInfo {

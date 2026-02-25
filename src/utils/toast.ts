@@ -1,13 +1,13 @@
 /**
  * Toast notification utilities for plugins
  *
- * Allows plugins to display toast notifications in the main Moss UI
+ * Allows plugins to display toast notifications in the main moss UI
  * through Tauri's event system.
  *
  * ## Design Principles
  *
  * 1. **Plugin Full Control**: Plugins specify exactly what appears in toast
- * 2. **Minimal Assumptions**: Moss just renders what plugin says
+ * 2. **Minimal Assumptions**: moss just renders what plugin says
  * 3. **Direct Path**: Plugin → showToast() → Frontend renders
  * 4. **Separation of Concerns**: Toast (UX) is separate from HookResult (flow control)
  */
@@ -105,7 +105,7 @@ export const TOAST_DISMISS_EVENT = "show-toast-dismiss";
 // =============================================================================
 
 /**
- * Show a toast notification in the main Moss UI
+ * Show a toast notification in the main moss UI
  *
  * @param options - Toast options or simple message string
  *
