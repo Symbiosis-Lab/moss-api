@@ -389,6 +389,8 @@ export interface MockBrowserTracker {
   openedUrls: string[];
   /** URLs that were opened in system browser */
   systemBrowserUrls: string[];
+  /** HTML content passed to openBrowserWithHtml */
+  htmlContent: string[];
   /** Number of times closeBrowser was called */
   closeCount: number;
   /** Whether browser is currently open */
@@ -403,6 +405,7 @@ export interface MockBrowserTracker {
 export function createMockBrowserTracker(): MockBrowserTracker {
   const openedUrls: string[] = [];
   const systemBrowserUrls: string[] = [];
+  const htmlContent: string[] = [];
   let closeCount = 0;
   let isOpen = false;
 
@@ -412,6 +415,9 @@ export function createMockBrowserTracker(): MockBrowserTracker {
     },
     get systemBrowserUrls() {
       return systemBrowserUrls;
+    },
+    get htmlContent() {
+      return htmlContent;
     },
     get closeCount() {
       return closeCount;
@@ -428,6 +434,7 @@ export function createMockBrowserTracker(): MockBrowserTracker {
     reset() {
       openedUrls.length = 0;
       systemBrowserUrls.length = 0;
+      htmlContent.length = 0;
       closeCount = 0;
       isOpen = false;
     },
@@ -866,6 +873,13 @@ export function setupMockTauri(options?: SetupMockTauriOptions): MockTauriContex
       // ======================================================================
       // Browser Operations
       // ======================================================================
+      case "set_plugin_browser_html": {
+        const html = payload?.html as string;
+        browserTracker.htmlContent.push(html);
+        (browserTracker as { isOpen: boolean }).isOpen = true;
+        return null;
+      }
+
       case "open_plugin_browser": {
         const url = payload?.url as string;
         browserTracker.openedUrls.push(url);
