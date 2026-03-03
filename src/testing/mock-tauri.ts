@@ -385,7 +385,7 @@ export function createMockCookieStorage(): MockCookieStorage {
  * Tracks browser open/close calls for testing
  */
 export interface MockBrowserTracker {
-  /** URLs that were opened in plugin browser */
+  /** URLs that were opened in action panel */
   openedUrls: string[];
   /** URLs that were opened in system browser */
   systemBrowserUrls: string[];
@@ -873,21 +873,21 @@ export function setupMockTauri(options?: SetupMockTauriOptions): MockTauriContex
       // ======================================================================
       // Browser Operations
       // ======================================================================
-      case "set_plugin_browser_html": {
+      case "set_action_panel_html": {
         const html = payload?.html as string;
         browserTracker.htmlContent.push(html);
         (browserTracker as { isOpen: boolean }).isOpen = true;
         return null;
       }
 
-      case "open_plugin_browser": {
+      case "open_action_panel": {
         const url = payload?.url as string;
         browserTracker.openedUrls.push(url);
         (browserTracker as { isOpen: boolean }).isOpen = true;
         return null;
       }
 
-      case "close_plugin_browser": {
+      case "close_action_panel": {
         (browserTracker as { closeCount: number }).closeCount++;
         (browserTracker as { isOpen: boolean }).isOpen = false;
         return null;

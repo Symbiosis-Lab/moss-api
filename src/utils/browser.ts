@@ -83,7 +83,7 @@ const BROWSER_BRIDGE_SCRIPT = `<script>
 (function() {
   const { event, core } = window.__TAURI__;
   window.mossApi = {
-    close: () => core.invoke('close_plugin_browser'),
+    close: () => core.invoke('close_action_panel'),
     emit: (name, payload) => event.emit(name, payload),
   };
 })();
@@ -107,7 +107,7 @@ function injectBridgeScript(html: string): string {
 // ============================================================================
 
 /**
- * Open a URL in the plugin browser window
+ * Open a URL in the action panel
  *
  * Returns a BrowserHandle that can be used to detect when the window is closed.
  *
@@ -130,7 +130,7 @@ function injectBridgeScript(html: string): string {
  * ```
  */
 export async function openBrowser(url: string): Promise<BrowserHandle> {
-  await getTauriCore().invoke("open_plugin_browser", { url });
+  await getTauriCore().invoke("open_action_panel", { url });
 
   // Create a promise that resolves when the browser-closed event is received
   const closed = new Promise<BrowserCloseReason>((resolve) => {
@@ -149,10 +149,10 @@ export async function openBrowser(url: string): Promise<BrowserHandle> {
 }
 
 /**
- * Close the plugin browser window
+ * Close the action panel
  */
 export async function closeBrowser(): Promise<void> {
-  await getTauriCore().invoke("close_plugin_browser", {});
+  await getTauriCore().invoke("close_action_panel", {});
 }
 
 /**
@@ -173,7 +173,7 @@ export async function openSystemBrowser(url: string): Promise<void> {
 }
 
 /**
- * Open the plugin browser with dynamic HTML content
+ * Open the action panel with dynamic HTML content
  *
  * Automatically injects a bridge script that exposes `window.mossApi` with:
  * - `close()` - closes the browser panel
@@ -224,7 +224,7 @@ export async function openSystemBrowser(url: string): Promise<void> {
  */
 export async function openBrowserWithHtml(html: string): Promise<void> {
   const injectedHtml = injectBridgeScript(html);
-  await getTauriCore().invoke("set_plugin_browser_html", { html: injectedHtml });
+  await getTauriCore().invoke("set_action_panel_html", { html: injectedHtml });
 }
 
 /**

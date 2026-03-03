@@ -79,7 +79,7 @@ await reportComplete(false, undefined, "Deployment failed");
 ```typescript
 import { openBrowser, closeBrowser } from "@symbiosis-lab/moss-api";
 
-// Open authentication page in plugin browser window
+// Open authentication page in action panel
 await openBrowser("https://example.com/auth");
 
 // Close browser window when done
@@ -137,8 +137,8 @@ if (isTauriAvailable()) {
 | `log(message)` | Log info message |
 | `warn(message)` | Log warning message |
 | `error(message)` | Log error message |
-| `openBrowser(url)` | Open URL in plugin browser |
-| `closeBrowser()` | Close plugin browser |
+| `openBrowser(url)` | Open URL in action panel |
+| `closeBrowser()` | Close action panel |
 
 ## License
 

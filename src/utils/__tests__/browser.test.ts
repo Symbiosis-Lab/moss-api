@@ -34,9 +34,9 @@ describe("Browser Utilities", () => {
   });
 
   describe("openBrowser", () => {
-    it("invokes open_plugin_browser command with URL", async () => {
+    it("invokes open_action_panel command with URL", async () => {
       const handle = await openBrowser("https://example.com");
-      expect(mockInvoke).toHaveBeenCalledWith("open_plugin_browser", {
+      expect(mockInvoke).toHaveBeenCalledWith("open_action_panel", {
         url: "https://example.com",
       });
       expect(handle).toBeDefined();
@@ -86,7 +86,7 @@ describe("Browser Utilities", () => {
 
     it("handles URL with path and query params", async () => {
       await openBrowser("https://example.com/path?query=value&other=123");
-      expect(mockInvoke).toHaveBeenCalledWith("open_plugin_browser", {
+      expect(mockInvoke).toHaveBeenCalledWith("open_action_panel", {
         url: "https://example.com/path?query=value&other=123",
       });
     });
@@ -100,9 +100,9 @@ describe("Browser Utilities", () => {
   });
 
   describe("closeBrowser", () => {
-    it("invokes close_plugin_browser command with empty args", async () => {
+    it("invokes close_action_panel command with empty args", async () => {
       await closeBrowser();
-      expect(mockInvoke).toHaveBeenCalledWith("close_plugin_browser", {});
+      expect(mockInvoke).toHaveBeenCalledWith("close_action_panel", {});
     });
 
     it("throws when Tauri is unavailable", async () => {
@@ -117,10 +117,10 @@ describe("Browser Utilities", () => {
       await closeBrowser();
 
       expect(mockInvoke).toHaveBeenCalledTimes(2);
-      expect(mockInvoke).toHaveBeenNthCalledWith(1, "open_plugin_browser", {
+      expect(mockInvoke).toHaveBeenNthCalledWith(1, "open_action_panel", {
         url: "https://example.com/login",
       });
-      expect(mockInvoke).toHaveBeenNthCalledWith(2, "close_plugin_browser", {});
+      expect(mockInvoke).toHaveBeenNthCalledWith(2, "close_action_panel", {});
       expect(handle.closed).toBeInstanceOf(Promise);
     });
 
@@ -155,7 +155,7 @@ describe("Browser Utilities", () => {
       const calledHtml = mockInvoke.mock.calls[0][1].html as string;
       // Bridge should be injected before </head>
       expect(calledHtml).toContain("window.mossApi");
-      expect(calledHtml).toContain("close_plugin_browser");
+      expect(calledHtml).toContain("close_action_panel");
 
       // Verify position: bridge script should come before </head>
       const bridgeIdx = calledHtml.indexOf("window.mossApi");
@@ -199,7 +199,7 @@ describe("Browser Utilities", () => {
       // Just verifying the function signature hasn't changed
       await openBrowserWithHtml("<p>test</p>");
       expect(mockInvoke).toHaveBeenCalledWith(
-        "set_plugin_browser_html",
+        "set_action_panel_html",
         expect.objectContaining({ html: expect.any(String) })
       );
     });
@@ -329,7 +329,7 @@ describe("Browser Utilities", () => {
 
       await formPromise;
 
-      expect(mockInvoke).toHaveBeenCalledWith("close_plugin_browser", {});
+      expect(mockInvoke).toHaveBeenCalledWith("close_action_panel", {});
     });
 
     it("calls closeBrowser on cancel", async () => {
@@ -350,7 +350,7 @@ describe("Browser Utilities", () => {
 
       await formPromise;
 
-      expect(mockInvoke).toHaveBeenCalledWith("close_plugin_browser", {});
+      expect(mockInvoke).toHaveBeenCalledWith("close_action_panel", {});
     });
 
     it("calls closeBrowser on timeout", async () => {
@@ -364,7 +364,7 @@ describe("Browser Utilities", () => {
 
       await formPromise;
 
-      expect(mockInvoke).toHaveBeenCalledWith("close_plugin_browser", {});
+      expect(mockInvoke).toHaveBeenCalledWith("close_action_panel", {});
     });
 
     it("cleans up both listeners on submit", async () => {
@@ -508,7 +508,7 @@ describe("Browser Utilities", () => {
       // Wait for both the invoke and the listeners to be set up
       await vi.waitFor(() => {
         expect(mockInvoke).toHaveBeenCalledWith(
-          "set_plugin_browser_html",
+          "set_action_panel_html",
           expect.objectContaining({ html: expect.any(String) })
         );
         expect(mockListen).toHaveBeenCalledWith(
@@ -546,11 +546,11 @@ describe("Browser Utilities", () => {
       submitHandler({ payload: { name: "Alice" } });
 
       // At this point, closeBrowser should NOT have been called yet
-      expect(mockInvoke).not.toHaveBeenCalledWith("close_plugin_browser", {});
+      expect(mockInvoke).not.toHaveBeenCalledWith("close_action_panel", {});
 
       // Advance time by 1999ms - still should not close
       await vi.advanceTimersByTimeAsync(1999);
-      expect(mockInvoke).not.toHaveBeenCalledWith("close_plugin_browser", {});
+      expect(mockInvoke).not.toHaveBeenCalledWith("close_action_panel", {});
 
       // Advance by 1ms more to reach 2000ms - now it should close
       await vi.advanceTimersByTimeAsync(1);
@@ -558,7 +558,7 @@ describe("Browser Utilities", () => {
       await formPromise;
 
       // Verify closeBrowser was called after delay
-      expect(mockInvoke).toHaveBeenCalledWith("close_plugin_browser", {});
+      expect(mockInvoke).toHaveBeenCalledWith("close_action_panel", {});
     });
 
     it("immediately closes browser when no closeDelayMs is provided", async () => {
@@ -584,7 +584,7 @@ describe("Browser Utilities", () => {
       await formPromise;
 
       // Verify closeBrowser was called immediately (existing behavior)
-      expect(mockInvoke).toHaveBeenCalledWith("close_plugin_browser", {});
+      expect(mockInvoke).toHaveBeenCalledWith("close_action_panel", {});
     });
 
     it("resolves with submitted value after delay", async () => {
@@ -609,7 +609,7 @@ describe("Browser Utilities", () => {
 
       // Verify we get the submitted value
       expect(result).toEqual({ value: 42 });
-      expect(mockInvoke).toHaveBeenCalledWith("close_plugin_browser", {});
+      expect(mockInvoke).toHaveBeenCalledWith("close_action_panel", {});
     });
 
     it("applies delay on cancel event as well", async () => {
@@ -626,7 +626,7 @@ describe("Browser Utilities", () => {
       cancelCall![1]({ payload: {} });
 
       // closeBrowser should not be called immediately
-      expect(mockInvoke).not.toHaveBeenCalledWith("close_plugin_browser", {});
+      expect(mockInvoke).not.toHaveBeenCalledWith("close_action_panel", {});
 
       // Advance time
       await vi.advanceTimersByTimeAsync(1000);
@@ -634,7 +634,7 @@ describe("Browser Utilities", () => {
       await formPromise;
 
       // Now closeBrowser should be called
-      expect(mockInvoke).toHaveBeenCalledWith("close_plugin_browser", {});
+      expect(mockInvoke).toHaveBeenCalledWith("close_action_panel", {});
     });
 
     it("applies delay on timeout as well", async () => {
@@ -652,7 +652,7 @@ describe("Browser Utilities", () => {
       await vi.advanceTimersByTimeAsync(500);
 
       // closeBrowser should not be called immediately
-      expect(mockInvoke).not.toHaveBeenCalledWith("close_plugin_browser", {});
+      expect(mockInvoke).not.toHaveBeenCalledWith("close_action_panel", {});
 
       // Advance by delay amount
       await vi.advanceTimersByTimeAsync(1000);
@@ -660,7 +660,7 @@ describe("Browser Utilities", () => {
       await formPromise;
 
       // Now closeBrowser should be called
-      expect(mockInvoke).toHaveBeenCalledWith("close_plugin_browser", {});
+      expect(mockInvoke).toHaveBeenCalledWith("close_action_panel", {});
     });
   });
 });
