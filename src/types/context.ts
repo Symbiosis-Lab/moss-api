@@ -24,7 +24,7 @@ export interface BaseContext {
 /**
  * Context for before_build hook (process capability)
  */
-export interface BeforeBuildContext extends BaseContext {}
+export interface ProcessContext extends BaseContext {}
 
 /**
  * A node in the universal Page Tree.
@@ -77,7 +77,7 @@ export interface PageNode {
 /**
  * Context for on_build hook (generator plugins)
  */
-export interface OnBuildContext extends BaseContext {
+export interface GenerateContext extends BaseContext {
   source_files: SourceFiles;
   /** Resolved Page Tree — universal content model for all generators */
   page_tree?: PageNode;
@@ -86,7 +86,7 @@ export interface OnBuildContext extends BaseContext {
 /**
  * Context for on_deploy hook (deployer plugins)
  */
-export interface OnDeployContext extends BaseContext {
+export interface DeployContext extends BaseContext {
   site_files: string[];
 }
 
@@ -114,7 +114,7 @@ export interface OnDeployContext extends BaseContext {
  * - Call 2: Verifies CNAME is set, enforces HTTPS via API
  * - Call 3+: Both already done, returns success without changes
  */
-export interface OnConfigureDomainContext extends BaseContext {
+export interface ConfigureDomainContext extends BaseContext {
   /** The custom domain being configured (e.g., "example.com") */
   domain: string;
   /** Deployment information from the last deploy */
@@ -124,7 +124,7 @@ export interface OnConfigureDomainContext extends BaseContext {
 /**
  * Context for after_deploy hook (syndicator plugins)
  */
-export interface AfterDeployContext extends BaseContext {
+export interface SyndicateContext extends BaseContext {
   site_files: string[];
   articles: ArticleInfo[];
   deployment?: DeploymentInfo;

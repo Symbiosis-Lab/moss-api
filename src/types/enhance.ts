@@ -6,7 +6,7 @@
  */
 
 /** Context passed to a plugin's `enhance()` method. */
-export interface SlotContext {
+export interface EnhanceContext {
   project_path: string;
   moss_dir: string;
   output_dir: string;
@@ -16,12 +16,12 @@ export interface SlotContext {
 }
 
 /** Content declaration for a single slot. */
-export type SlotContent =
+export type EnhanceContent =
   | { type: "static"; html: string }
   | { type: "per-page"; pages: Record<string, string> };
 
 /** Result returned from a plugin's `enhance()` call. */
-export interface SlotResult {
+export interface EnhanceResult {
   success: boolean;
-  slots: Record<string, SlotContent>;
+  slots: Record<string, EnhanceContent>;
 }

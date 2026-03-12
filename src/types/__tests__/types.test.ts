@@ -4,10 +4,10 @@ import type {
   PluginManifest,
   PluginCategory,
   BaseContext,
-  BeforeBuildContext,
-  OnBuildContext,
-  OnDeployContext,
-  AfterDeployContext,
+  ProcessContext,
+  GenerateContext,
+  DeployContext,
+  SyndicateContext,
   SourceFiles,
   ArticleInfo,
   DeploymentInfo,
@@ -210,9 +210,9 @@ describe("Type Definitions", () => {
     });
   });
 
-  describe("OnBuildContext with page_tree", () => {
-    it("accepts OnBuildContext with optional page_tree field", () => {
-      const ctx: OnBuildContext = {
+  describe("GenerateContext with page_tree", () => {
+    it("accepts GenerateContext with optional page_tree field", () => {
+      const ctx: GenerateContext = {
         project_path: "/project",
         moss_dir: "/project/.moss",
         project_info: {
@@ -287,8 +287,8 @@ describe("Type Definitions", () => {
       expect(ctx.moss_dir).toBe("/path/to/project/.moss");
     });
 
-    it("accepts BeforeBuildContext (extends BaseContext)", () => {
-      const ctx: BeforeBuildContext = {
+    it("accepts ProcessContext (extends BaseContext)", () => {
+      const ctx: ProcessContext = {
         project_path: "/project",
         moss_dir: "/project/.moss",
         project_info: baseProjectInfo,
@@ -297,8 +297,8 @@ describe("Type Definitions", () => {
       expect(ctx.project_path).toBe("/project");
     });
 
-    it("accepts OnBuildContext with source_files", () => {
-      const ctx: OnBuildContext = {
+    it("accepts GenerateContext with source_files", () => {
+      const ctx: GenerateContext = {
         project_path: "/project",
         moss_dir: "/project/.moss",
         project_info: baseProjectInfo,
@@ -313,8 +313,8 @@ describe("Type Definitions", () => {
       expect(ctx.source_files.markdown).toHaveLength(2);
     });
 
-    it("accepts OnDeployContext with output_dir and site_files", () => {
-      const ctx: OnDeployContext = {
+    it("accepts DeployContext with output_dir and site_files", () => {
+      const ctx: DeployContext = {
         project_path: "/project",
         moss_dir: "/project/.moss",
         project_info: baseProjectInfo,
@@ -326,8 +326,8 @@ describe("Type Definitions", () => {
       expect(ctx.site_files).toHaveLength(2);
     });
 
-    it("accepts AfterDeployContext with articles and optional deployment", () => {
-      const ctx: AfterDeployContext = {
+    it("accepts SyndicateContext with articles and optional deployment", () => {
+      const ctx: SyndicateContext = {
         project_path: "/project",
         moss_dir: "/project/.moss",
         project_info: baseProjectInfo,

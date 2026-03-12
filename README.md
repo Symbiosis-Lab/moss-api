@@ -18,8 +18,8 @@ npm install @symbiosis-lab/moss-api
 
 ```typescript
 import type {
-  OnDeployContext,
-  AfterDeployContext,
+  DeployContext,
+  SyndicateContext,
   HookResult,
   PluginManifest,
   PluginCategory,
@@ -34,7 +34,7 @@ const manifest: PluginManifest = {
 };
 
 // Implement a hook
-async function onDeploy(context: OnDeployContext): Promise<HookResult> {
+async function onDeploy(context: DeployContext): Promise<HookResult> {
   // Your deployment logic here
   return { success: true, message: "Deployed successfully" };
 }
@@ -108,10 +108,10 @@ if (isTauriAvailable()) {
 | `PluginManifest` | Plugin configuration (name, version, entry, category) |
 | `PluginCategory` | Union: "generator" \| "deployer" \| "syndicator" \| "enhancer" \| "processor" |
 | `BaseContext` | Base hook context with project info |
-| `BeforeBuildContext` | Context for before_build hook |
-| `OnBuildContext` | Context for on_build hook (includes source files) |
-| `OnDeployContext` | Context for on_deploy hook (includes output files) |
-| `AfterDeployContext` | Context for after_deploy hook (includes articles, deployment) |
+| `ProcessContext` | Context for before_build hook |
+| `GenerateContext` | Context for on_build hook (includes source files) |
+| `DeployContext` | Context for on_deploy hook (includes output files) |
+| `SyndicateContext` | Context for after_deploy hook (includes articles, deployment) |
 | `SourceFiles` | Categorized source files (markdown, pages, docx, other) |
 | `ArticleInfo` | Article metadata for syndication |
 | `DeploymentInfo` | Deployment result (method, url, timestamp, metadata) |
