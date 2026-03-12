@@ -5,7 +5,7 @@
  * Rust handles insertion during template rendering.
  */
 
-/** Context passed to a plugin's `getSlotContent()` method. */
+/** Context passed to a plugin's `enhance()` method. */
 export interface SlotContext {
   project_path: string;
   moss_dir: string;
@@ -20,7 +20,7 @@ export type SlotContent =
   | { type: "static"; html: string }
   | { type: "per-page"; pages: Record<string, string> };
 
-/** Result returned from a plugin's `getSlotContent()` call. */
+/** Result returned from a plugin's `enhance()` call. */
 export interface SlotResult {
   success: boolean;
   slots: Record<string, SlotContent>;
