@@ -242,6 +242,23 @@ export async function listSourceFiles(): Promise<string[]> {
 }
 
 // ============================================================================
+// Social data discovery
+// ============================================================================
+
+/**
+ * List social data source names from .moss/social/*.json
+ *
+ * Returns file stems (without .json extension) for all JSON files
+ * in the project's .moss/social/ directory. Returns empty array
+ * if directory doesn't exist.
+ *
+ * @returns Array of source names (e.g., ["comment", "douban", "matters"])
+ */
+export async function listSocialFiles(): Promise<string[]> {
+  return getTauriCore().invoke<string[]>("list_social_files", {});
+}
+
+// ============================================================================
 // Site operations (heavy I/O in Rust, no JS memory pressure)
 // ============================================================================
 

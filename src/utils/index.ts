@@ -41,6 +41,7 @@ export {
   readSiteFile,
   readProjectFileBase64,
   listSourceFiles,
+  listSocialFiles,
   listSiteFilesWithSizes,
   type ProjectFileEntry,
   type SiteFileInfo,
