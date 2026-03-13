@@ -702,6 +702,59 @@ export function setupMockTauri(options?: SetupMockTauriOptions): MockTauriContex
           .map((p) => p.substring(projectPath.length + 1));
       }
 
+      case "list_project_tree": {
+        // Return files with is_home annotations (mirrors Rust annotate_home_files)
+        const allPaths = filesystem.listFiles();
+        const prefix = projectPath + "/";
+        const relPaths = allPaths
+          .filter((p) => p.startsWith(prefix))
+          .map((p) => p.substring(prefix.length));
+
+        // Group by parent folder
+        const folderFiles = new Map<string, string[]>();
+        for (const p of relPaths) {
+          const lastSlash = p.lastIndexOf("/");
+          const parent = lastSlash >= 0 ? p.substring(0, lastSlash) : "";
+          const filename = lastSlash >= 0 ? p.substring(lastSlash + 1) : p;
+          if (!folderFiles.has(parent)) folderFiles.set(parent, []);
+          folderFiles.get(parent)!.push(filename);
+        }
+
+        // Detect home file per folder (simplified version of Rust logic)
+        const INDEX_STEMS = ["index", "readme", "_index", "main"];
+        const homePaths = new Set<string>();
+        for (const [folder, files] of folderFiles) {
+          let winner: string | null = null;
+          // Priority 1: index stems
+          for (const stem of INDEX_STEMS) {
+            const found = files.find(
+              (f) => f.toLowerCase().replace(/\.[^.]+$/, "") === stem
+            );
+            if (found) { winner = found; break; }
+          }
+          // Priority 2: self-named folder note
+          if (!winner) {
+            const folderName = folder.includes("/")
+              ? folder.substring(folder.lastIndexOf("/") + 1)
+              : folder;
+            if (folderName) {
+              const found = files.find(
+                (f) => f.toLowerCase().replace(/\.[^.]+$/, "") === folderName.toLowerCase()
+              );
+              if (found) winner = found;
+            }
+          }
+          if (winner) {
+            homePaths.add(folder ? `${folder}/${winner}` : winner);
+          }
+        }
+
+        return relPaths.map((p) => ({
+          path: p,
+          is_home: homePaths.has(p),
+        }));
+      }
+
       case "project_file_exists": {
         const projectPath = payload?.projectPath as string;
         const relativePath = payload?.relativePath as string;

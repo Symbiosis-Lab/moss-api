@@ -35,12 +35,14 @@ export {
   readFile,
   writeFile,
   listFiles,
+  listProjectTree,
   fileExists,
   createSymlink,
   readSiteFile,
   readProjectFileBase64,
   listSourceFiles,
   listSiteFilesWithSizes,
+  type ProjectFileEntry,
   type SiteFileInfo,
 } from "./filesystem";
 

@@ -98,6 +98,25 @@ export async function listFiles(): Promise<string[]> {
   });
 }
 
+/** A project file with home-file annotation from Rust's detect_home_file_in_folder */
+export interface ProjectFileEntry {
+  path: string;
+  is_home: boolean;
+}
+
+/**
+ * List all project files with home-file annotations
+ *
+ * Each file is annotated with `is_home: true` if it's the detected home file
+ * for its containing folder (index.md, README.md, self-named folder note, etc.).
+ * Detection uses the same logic as the built-in generator.
+ *
+ * @returns Array of file entries with is_home annotations
+ */
+export async function listProjectTree(): Promise<ProjectFileEntry[]> {
+  return getTauriCore().invoke<ProjectFileEntry[]>("list_project_tree", {});
+}
+
 /**
  * Check if a file exists in the project directory
  *
