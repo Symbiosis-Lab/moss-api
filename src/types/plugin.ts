@@ -8,6 +8,7 @@ export interface ProjectInfo {
   total_files: number;
   homepage_file?: string;
   site_name?: string;
+  lang?: string;
 }
 
 export interface PluginManifest {
