@@ -130,7 +130,7 @@ function injectBridgeScript(html: string): string {
  * ```
  */
 export async function openBrowser(url: string): Promise<BrowserHandle> {
-  await getTauriCore().invoke("open_action_panel", { url });
+  await getTauriCore().invoke("open_action_panel", { url, belowTitlebar: true });
 
   // Create a promise that resolves when the browser-closed event is received
   const closed = new Promise<BrowserCloseReason>((resolve) => {
