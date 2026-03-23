@@ -326,6 +326,29 @@ describe("Type Definitions", () => {
       expect(ctx.site_files).toHaveLength(2);
     });
 
+    it("accepts DeployContext with optional domain", () => {
+      const ctxWithDomain: DeployContext = {
+        project_path: "/project",
+        moss_dir: "/project/.moss",
+        project_info: baseProjectInfo,
+        config: {},
+        output_dir: "/project/.moss/site",
+        site_files: ["index.html"],
+        domain: "guoliu.me",
+      };
+      expect(ctxWithDomain.domain).toBe("guoliu.me");
+
+      const ctxWithoutDomain: DeployContext = {
+        project_path: "/project",
+        moss_dir: "/project/.moss",
+        project_info: baseProjectInfo,
+        config: {},
+        output_dir: "/project/.moss/site",
+        site_files: ["index.html"],
+      };
+      expect(ctxWithoutDomain.domain).toBeUndefined();
+    });
+
     it("accepts SyndicateContext with articles and optional deployment", () => {
       const ctx: SyndicateContext = {
         project_path: "/project",

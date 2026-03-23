@@ -88,6 +88,8 @@ export interface GenerateContext extends BaseContext {
  */
 export interface DeployContext extends BaseContext {
   site_files: string[];
+  /** Custom domain from .moss/config.toml [deployment] section (if configured) */
+  domain?: string;
 }
 
 /**
