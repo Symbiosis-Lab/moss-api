@@ -38,6 +38,7 @@ describe("Browser Utilities", () => {
       const handle = await openBrowser("https://example.com");
       expect(mockInvoke).toHaveBeenCalledWith("open_action_panel", {
         url: "https://example.com",
+        belowTitlebar: true,
       });
       expect(handle).toBeDefined();
     });
@@ -88,6 +89,7 @@ describe("Browser Utilities", () => {
       await openBrowser("https://example.com/path?query=value&other=123");
       expect(mockInvoke).toHaveBeenCalledWith("open_action_panel", {
         url: "https://example.com/path?query=value&other=123",
+        belowTitlebar: true,
       });
     });
 
@@ -119,6 +121,7 @@ describe("Browser Utilities", () => {
       expect(mockInvoke).toHaveBeenCalledTimes(2);
       expect(mockInvoke).toHaveBeenNthCalledWith(1, "open_action_panel", {
         url: "https://example.com/login",
+        belowTitlebar: true,
       });
       expect(mockInvoke).toHaveBeenNthCalledWith(2, "close_action_panel", {});
       expect(handle.closed).toBeInstanceOf(Promise);
