@@ -319,10 +319,10 @@ describe("Type Definitions", () => {
         moss_dir: "/project/.moss",
         project_info: baseProjectInfo,
         config: {},
-        output_dir: "/project/.moss/site",
+        output_dir: "/project/.moss/build/site",
         site_files: ["index.html", "post1.html"],
       };
-      expect(ctx.output_dir).toBe("/project/.moss/site");
+      expect(ctx.output_dir).toBe("/project/.moss/build/site");
       expect(ctx.site_files).toHaveLength(2);
     });
 
@@ -332,7 +332,7 @@ describe("Type Definitions", () => {
         moss_dir: "/project/.moss",
         project_info: baseProjectInfo,
         config: {},
-        output_dir: "/project/.moss/site",
+        output_dir: "/project/.moss/build/site",
         site_files: ["index.html"],
         domain: "guoliu.me",
       };
@@ -343,7 +343,7 @@ describe("Type Definitions", () => {
         moss_dir: "/project/.moss",
         project_info: baseProjectInfo,
         config: {},
-        output_dir: "/project/.moss/site",
+        output_dir: "/project/.moss/build/site",
         site_files: ["index.html"],
       };
       expect(ctxWithoutDomain.domain).toBeUndefined();
@@ -355,7 +355,7 @@ describe("Type Definitions", () => {
         moss_dir: "/project/.moss",
         project_info: baseProjectInfo,
         config: {},
-        output_dir: "/project/.moss/site",
+        output_dir: "/project/.moss/build/site",
         site_files: ["index.html"],
         articles: [
           {
