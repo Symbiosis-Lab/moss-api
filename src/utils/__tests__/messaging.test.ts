@@ -6,6 +6,7 @@ import {
   reportProgress,
   reportError,
   reportComplete,
+  startTask,
 } from "../messaging";
 
 describe("Messaging Utilities", () => {
@@ -233,6 +234,208 @@ describe("Messaging Utilities", () => {
           result: undefined,
         },
       });
+    });
+  });
+
+  // ──────────────────────────────────────────────────────────────────────
+  // startTask (ADR-015 Phase 2 — T8a)
+  //
+  // The lifecycle API is invoke-based end-to-end (every transition needs
+  // an acknowledgment so the Rust-side store keeps in sync), so all
+  // assertions inspect mockInvoke. Mock returns sequential task ids so
+  // we can verify the started→subsequent-call id threading.
+  // ──────────────────────────────────────────────────────────────────────
+
+  describe("startTask", () => {
+    beforeEach(() => {
+      // Each invoke call resolves to id=42 unless overridden; the handle
+      // captures this id and threads it through subsequent transitions.
+      mockInvoke.mockResolvedValue(42);
+    });
+
+    it("invokes report_plugin_task_lifecycle_command with started lifecycle", async () => {
+      setMessageContext("matters", "process");
+      const task = await startTask("Importing 42 articles", {
+        hook: "import",
+        trigger: "onboarding_flow",
+        hasProgress: true,
+        cancellable: true,
+      });
+
+      expect(task.id).toBe(42);
+      expect(mockInvoke).toHaveBeenCalledWith(
+        "report_plugin_task_lifecycle_command",
+        {
+          pluginName: "matters",
+          hook: "import",
+          trigger: "onboarding_flow",
+          taskId: undefined,
+          lifecycle: {
+            type: "started",
+            label: "Importing 42 articles",
+            has_progress: true,
+            cancellable: true,
+          },
+        }
+      );
+    });
+
+    it("threads task id into subsequent progress / succeeded calls", async () => {
+      setMessageContext("matters", "process");
+      const task = await startTask("Importing", { hook: "import" });
+      mockInvoke.mockClear();
+
+      await task.progress(0.42, "halfway");
+      expect(mockInvoke).toHaveBeenCalledWith(
+        "report_plugin_task_lifecycle_command",
+        expect.objectContaining({
+          taskId: 42,
+          lifecycle: {
+            type: "progress",
+            fraction: 0.42,
+            message: "halfway",
+          },
+        })
+      );
+
+      mockInvoke.mockClear();
+      await task.succeeded("Imported 42 articles");
+      expect(mockInvoke).toHaveBeenCalledWith(
+        "report_plugin_task_lifecycle_command",
+        expect.objectContaining({
+          taskId: 42,
+          lifecycle: {
+            type: "succeeded",
+            receipt: "Imported 42 articles",
+          },
+        })
+      );
+    });
+
+    it("awaiting() splices venue into directive for the Awaiting renderer", async () => {
+      setMessageContext("matters", "process");
+      const task = await startTask("Deploying", {
+        hook: "deploy",
+        trigger: "onboarding_flow",
+      });
+      mockInvoke.mockClear();
+
+      await task.awaiting("verify DNS", "your registrar", "recheck:Recheck DNS");
+      expect(mockInvoke).toHaveBeenCalledWith(
+        "report_plugin_task_lifecycle_command",
+        expect.objectContaining({
+          taskId: 42,
+          lifecycle: {
+            type: "awaiting",
+            directive: "verify DNS in your registrar",
+            escape: "recheck:Recheck DNS",
+          },
+        })
+      );
+    });
+
+    it("awaiting() defaults escape to cancel", async () => {
+      setMessageContext("matters", "process");
+      const task = await startTask("Importing");
+      mockInvoke.mockClear();
+      await task.awaiting("sign in", "Matters");
+      const lifecycle = (mockInvoke.mock.calls[0][1] as { lifecycle: { escape: string } })
+        .lifecycle;
+      expect(lifecycle.escape).toBe("cancel");
+    });
+
+    it("failed() defaults recoverable to false (toast surface)", async () => {
+      setMessageContext("matters", "process");
+      const task = await startTask("Importing");
+      mockInvoke.mockClear();
+      await task.failed("offline");
+      expect(mockInvoke).toHaveBeenCalledWith(
+        "report_plugin_task_lifecycle_command",
+        expect.objectContaining({
+          lifecycle: { type: "failed", error: "offline", recoverable: false },
+        })
+      );
+    });
+
+    it("hook defaults to 'import' and trigger defaults to 'background'", async () => {
+      setMessageContext("matters", "process");
+      await startTask("Default routing");
+      expect(mockInvoke).toHaveBeenCalledWith(
+        "report_plugin_task_lifecycle_command",
+        expect.objectContaining({
+          hook: "import",
+          trigger: "background",
+        })
+      );
+    });
+
+    it("captures plugin name at startTask() time, not transition time", async () => {
+      // Plugin author starts an import; later, setMessageContext rolls
+      // to a different hook (e.g., enhance) before the import resolves.
+      // The task's transitions should keep routing under the original
+      // plugin context — captured at start.
+      setMessageContext("matters", "process");
+      const task = await startTask("Importing");
+      setMessageContext("other-plugin", "syndicate"); // hook rolls
+      mockInvoke.mockClear();
+      await task.progress(0.5);
+      expect(mockInvoke).toHaveBeenCalledWith(
+        "report_plugin_task_lifecycle_command",
+        expect.objectContaining({
+          pluginName: "matters",
+        })
+      );
+    });
+
+    it("returns id=-1 when Tauri is unavailable (out-of-Tauri test paths)", async () => {
+      (globalThis as unknown as { window: unknown }).window = {};
+      const task = await startTask("Importing");
+      expect(task.id).toBe(-1);
+      // Subsequent calls do not throw even when Tauri is gone.
+      await expect(task.progress(0.5)).resolves.toBeUndefined();
+      await expect(task.succeeded("ok")).resolves.toBeUndefined();
+    });
+
+    it("end-to-end fake plugin: startTask().progress().succeeded()", async () => {
+      // Approach A test from the dispatch plan: write a tiny fake plugin
+      // that drives the API surface and inspect every emitted invoke.
+      setMessageContext("fake-plugin", "import");
+      let nextId = 100;
+      mockInvoke.mockImplementation(async (_cmd: string, args: { lifecycle: { type: string } }) => {
+        if (args.lifecycle.type === "started") return nextId++;
+        return 0;
+      });
+      const calls: Array<{ type: string; lifecycle: unknown }> = [];
+      const originalInvoke = mockInvoke.getMockImplementation();
+      mockInvoke.mockImplementation(async (cmd: string, args: { lifecycle: { type: string } }) => {
+        calls.push({ type: cmd, lifecycle: args.lifecycle });
+        if (args.lifecycle.type === "started") return 100;
+        return 0;
+      });
+
+      const task = await startTask("Fake import", {
+        hook: "import",
+        trigger: "onboarding_flow",
+      });
+      await task.progress(0.0, "starting");
+      await task.progress(0.5, "halfway");
+      await task.progress(1.0, "done");
+      await task.succeeded("Imported 0 articles");
+
+      // 1 started + 3 progress + 1 succeeded = 5 invoke calls.
+      expect(calls).toHaveLength(5);
+      const types = calls.map((c) => (c.lifecycle as { type: string }).type);
+      expect(types).toEqual([
+        "started",
+        "progress",
+        "progress",
+        "progress",
+        "succeeded",
+      ]);
+      // The task id is consistent across transitions.
+      expect(task.id).toBe(100);
+      // Restore impl in case other tests run after.
+      mockInvoke.mockImplementation(originalInvoke);
     });
   });
 });

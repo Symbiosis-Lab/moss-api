@@ -17,6 +17,14 @@ export {
   reportProgress,
   reportError,
   reportComplete,
+  // PanelTask lifecycle (ADR-015 Phase 2 — T8a). Preferred over
+  // reportProgress for new code; legacy API stays supported.
+  startTask,
+  type StartTaskOptions,
+  type TaskHandle,
+  type PluginHook,
+  type TriggerContext,
+  type EscapeSpec,
 } from "./messaging";
 
 // Browser
