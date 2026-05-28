@@ -9,6 +9,9 @@ export {
   type TauriCore,
 } from "./tauri";
 
+// Plugin-side env-var access (allow-listed via Rust)
+export { getPluginEnvVar } from "./env";
+
 // Messaging
 export {
   setMessageContext,
