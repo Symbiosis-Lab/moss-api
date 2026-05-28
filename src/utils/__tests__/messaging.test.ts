@@ -397,6 +397,34 @@ describe("Messaging Utilities", () => {
       await expect(task.succeeded("ok")).resolves.toBeUndefined();
     });
 
+    it("out-of-Tauri context: TaskHandle methods are no-op (do not emit invokes)", async () => {
+      // Architecture-review fix: when Tauri isn't available, the
+      // sentinel id ("-1") returned by startTask() must NOT be
+      // threaded into subsequent invokes. The handle methods
+      // short-circuit before touching `invoke`, so a plugin
+      // exercised in a unit-test or browser-preview environment
+      // sees no spurious IPC attempts (which would otherwise be
+      // rejected by the Rust router as "unknown task id").
+      (globalThis as unknown as { window: unknown }).window = {};
+      mockInvoke.mockClear();
+      const task = await startTask("Importing", { hook: "import" });
+      expect(task.id).toBe("-1");
+      // `startTask` itself short-circuits via isTauriAvailable()
+      // before reaching invoke, so no started call either.
+      expect(mockInvoke).not.toHaveBeenCalled();
+
+      // Every TaskHandle method completes without throwing AND
+      // without emitting an invoke.
+      await expect(task.progress(0.25, "quarter")).resolves.toBeUndefined();
+      await expect(
+        task.awaiting("verify DNS", "your registrar", "recheck:Recheck DNS")
+      ).resolves.toBeUndefined();
+      await expect(task.succeeded("done")).resolves.toBeUndefined();
+      await expect(task.failed("offline", true)).resolves.toBeUndefined();
+      await expect(task.cancelled()).resolves.toBeUndefined();
+      expect(mockInvoke).not.toHaveBeenCalled();
+    });
+
     it("end-to-end fake plugin: startTask().progress().succeeded()", async () => {
       // Approach A test from the dispatch plan: write a tiny fake plugin
       // that drives the API surface and inspect every emitted invoke.

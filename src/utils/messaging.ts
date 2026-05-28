@@ -245,6 +245,21 @@ export interface TaskHandle {
  * Task id is `string` end-to-end (u64 in Rust → string in specta) to
  * preserve precision above 2^53.
  */
+/**
+ * Sentinel task id returned when running outside a Tauri context
+ * (unit tests, browser preview of plugin). Subsequent `TaskHandle`
+ * method calls short-circuit when they see this id so they don't
+ * issue invokes with a fake taskId that the Rust router would
+ * reject as "unknown task id".
+ *
+ * Exported solely so the corresponding test can assert against it
+ * by symbol; production code should never compare against this
+ * literal — use `TaskHandle.id === OUT_OF_TAURI_TASK_ID` is the
+ * only legitimate check, and the `TaskHandle` methods already
+ * encapsulate it.
+ */
+export const OUT_OF_TAURI_TASK_ID = "-1";
+
 async function invokeLifecycle(
   pluginName: string,
   hook: PluginHook,
@@ -254,8 +269,9 @@ async function invokeLifecycle(
 ): Promise<string> {
   if (!isTauriAvailable()) {
     // Out-of-Tauri (unit tests, browser preview of plugin) — skip.
-    // Return "-1" so callers don't accidentally treat 0 as a valid id.
-    return "-1";
+    // Return the sentinel so callers don't accidentally treat 0
+    // as a valid id; `TaskHandle` methods detect this and no-op.
+    return OUT_OF_TAURI_TASK_ID;
   }
   const raw = await getTauriCore().invoke<string | number>(
     "report_plugin_task_lifecycle_command",
@@ -315,6 +331,22 @@ export async function startTask(
     has_progress: hasProgress,
     cancellable,
   });
+
+  // Out-of-Tauri context (unit tests, browser preview): startTask
+  // already returned the sentinel id. Hand back a fully no-op
+  // handle so plugin code can be exercised without poisoning
+  // every subsequent transition with a fake id and without
+  // emitting invokes the host can't satisfy.
+  if (id === OUT_OF_TAURI_TASK_ID) {
+    return {
+      id,
+      async progress(): Promise<void> {},
+      async awaiting(): Promise<void> {},
+      async succeeded(): Promise<void> {},
+      async failed(): Promise<void> {},
+      async cancelled(): Promise<void> {},
+    };
+  }
 
   return {
     id,
