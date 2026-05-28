@@ -248,9 +248,10 @@ describe("Messaging Utilities", () => {
 
   describe("startTask", () => {
     beforeEach(() => {
-      // Each invoke call resolves to id=42 unless overridden; the handle
-      // captures this id and threads it through subsequent transitions.
-      mockInvoke.mockResolvedValue(42);
+      // Each invoke call resolves to id="42" (string — Rust u64 → specta
+      // serializes as string to preserve precision); the handle captures
+      // this id and threads it through subsequent transitions.
+      mockInvoke.mockResolvedValue("42");
     });
 
     it("invokes report_plugin_task_lifecycle_command with started lifecycle", async () => {
@@ -262,7 +263,7 @@ describe("Messaging Utilities", () => {
         cancellable: true,
       });
 
-      expect(task.id).toBe(42);
+      expect(task.id).toBe("42");
       expect(mockInvoke).toHaveBeenCalledWith(
         "report_plugin_task_lifecycle_command",
         {
@@ -289,7 +290,7 @@ describe("Messaging Utilities", () => {
       expect(mockInvoke).toHaveBeenCalledWith(
         "report_plugin_task_lifecycle_command",
         expect.objectContaining({
-          taskId: 42,
+          taskId: "42",
           lifecycle: {
             type: "progress",
             fraction: 0.42,
@@ -303,7 +304,7 @@ describe("Messaging Utilities", () => {
       expect(mockInvoke).toHaveBeenCalledWith(
         "report_plugin_task_lifecycle_command",
         expect.objectContaining({
-          taskId: 42,
+          taskId: "42",
           lifecycle: {
             type: "succeeded",
             receipt: "Imported 42 articles",
@@ -324,7 +325,7 @@ describe("Messaging Utilities", () => {
       expect(mockInvoke).toHaveBeenCalledWith(
         "report_plugin_task_lifecycle_command",
         expect.objectContaining({
-          taskId: 42,
+          taskId: "42",
           lifecycle: {
             type: "awaiting",
             directive: "verify DNS in your registrar",
@@ -387,10 +388,10 @@ describe("Messaging Utilities", () => {
       );
     });
 
-    it("returns id=-1 when Tauri is unavailable (out-of-Tauri test paths)", async () => {
+    it("returns id='-1' when Tauri is unavailable (out-of-Tauri test paths)", async () => {
       (globalThis as unknown as { window: unknown }).window = {};
       const task = await startTask("Importing");
-      expect(task.id).toBe(-1);
+      expect(task.id).toBe("-1");
       // Subsequent calls do not throw even when Tauri is gone.
       await expect(task.progress(0.5)).resolves.toBeUndefined();
       await expect(task.succeeded("ok")).resolves.toBeUndefined();
@@ -400,17 +401,12 @@ describe("Messaging Utilities", () => {
       // Approach A test from the dispatch plan: write a tiny fake plugin
       // that drives the API surface and inspect every emitted invoke.
       setMessageContext("fake-plugin", "import");
-      let nextId = 100;
-      mockInvoke.mockImplementation(async (_cmd: string, args: { lifecycle: { type: string } }) => {
-        if (args.lifecycle.type === "started") return nextId++;
-        return 0;
-      });
       const calls: Array<{ type: string; lifecycle: unknown }> = [];
       const originalInvoke = mockInvoke.getMockImplementation();
       mockInvoke.mockImplementation(async (cmd: string, args: { lifecycle: { type: string } }) => {
         calls.push({ type: cmd, lifecycle: args.lifecycle });
-        if (args.lifecycle.type === "started") return 100;
-        return 0;
+        if (args.lifecycle.type === "started") return "100";
+        return "0";
       });
 
       const task = await startTask("Fake import", {
@@ -433,7 +429,7 @@ describe("Messaging Utilities", () => {
         "succeeded",
       ]);
       // The task id is consistent across transitions.
-      expect(task.id).toBe(100);
+      expect(task.id).toBe("100");
       // Restore impl in case other tests run after.
       mockInvoke.mockImplementation(originalInvoke);
     });

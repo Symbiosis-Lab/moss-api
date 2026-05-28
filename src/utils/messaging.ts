@@ -206,8 +206,13 @@ export interface TaskHandle {
   /**
    * In-process task id minted by the Rust registry on `Started`.
    * Exposed for log correlation and tests.
+   *
+   * Rust-side this is `u64`; specta types `u64` as `string` because
+   * JS numbers lose precision above 2^53. The handle carries the
+   * exact string through subsequent transitions so no precision is
+   * lost in the round-trip.
    */
-  readonly id: number;
+  readonly id: string;
   /** Push a progress update. `fraction` in [0,1] if known, else undefined for indeterminate. */
   progress(fraction?: number, message?: string): Promise<void>;
   /**
@@ -236,20 +241,23 @@ export interface TaskHandle {
  * id Rust echoes back; throws if the invoke fails (caller decides how
  * to surface it — typically Awaiting / progress events fail-silent so a
  * dropped narrator update doesn't crash a plugin).
+ *
+ * Task id is `string` end-to-end (u64 in Rust → string in specta) to
+ * preserve precision above 2^53.
  */
 async function invokeLifecycle(
   pluginName: string,
   hook: PluginHook,
   trigger: TriggerContext,
-  taskId: number | undefined,
+  taskId: string | undefined,
   lifecycle: Record<string, unknown>
-): Promise<number> {
+): Promise<string> {
   if (!isTauriAvailable()) {
     // Out-of-Tauri (unit tests, browser preview of plugin) — skip.
-    // Return -1 so callers don't accidentally treat 0 as a valid id.
-    return -1;
+    // Return "-1" so callers don't accidentally treat 0 as a valid id.
+    return "-1";
   }
-  return await getTauriCore().invoke<number>(
+  const raw = await getTauriCore().invoke<string | number>(
     "report_plugin_task_lifecycle_command",
     {
       pluginName,
@@ -259,6 +267,9 @@ async function invokeLifecycle(
       lifecycle,
     }
   );
+  // Tauri's specta-generated path serializes u64 as a JSON string;
+  // some test mocks return a JS number. Coerce both to string.
+  return typeof raw === "number" ? String(raw) : raw;
 }
 
 /**
