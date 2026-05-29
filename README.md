@@ -1,147 +1,40 @@
-> **Read-only mirror.** Source lives in the private moss monorepo. See [CONTRIBUTING.md](CONTRIBUTING.md) — PRs against this mirror cannot be merged.
+# @symbiosis-lab/moss-api
 
-# moss-api
+> TypeScript API for writing moss plugins.
 
-[![CI](https://github.com/Symbiosis-Lab/moss-api/actions/workflows/ci.yml/badge.svg)](https://github.com/Symbiosis-Lab/moss-api/actions/workflows/ci.yml)
-[![codecov](https://codecov.io/gh/Symbiosis-Lab/moss-api/branch/main/graph/badge.svg)](https://codecov.io/gh/Symbiosis-Lab/moss-api)
-[![npm version](https://badge.fury.io/js/%40symbiosis-lab%2Fmoss-api.svg)](https://www.npmjs.com/package/@symbiosis-lab/moss-api)
+[![npm](https://img.shields.io/npm/v/@symbiosis-lab/moss-api)](https://www.npmjs.com/package/@symbiosis-lab/moss-api)
+[![downloads](https://img.shields.io/npm/dm/@symbiosis-lab/moss-api)](https://www.npmjs.com/package/@symbiosis-lab/moss-api)
+[![license](https://img.shields.io/npm/l/@symbiosis-lab/moss-api)](./LICENSE)
+[![bundle size](https://img.shields.io/bundlephobia/minzip/@symbiosis-lab/moss-api)](https://bundlephobia.com/package/@symbiosis-lab/moss-api)
+[![status](https://img.shields.io/badge/status-experimental-orange)](#stability)
+[![discussions](https://img.shields.io/github/discussions/Symbiosis-Lab/moss-api)](https://github.com/Symbiosis-Lab/moss-api/discussions)
 
-Official API for building moss plugins. Provides types and utilities for plugin development.
+> **Read-only mirror.** Source lives in the private moss monorepo. PRs cannot be merged here — see [CONTRIBUTING.md](CONTRIBUTING.md).
 
-## Installation
+[moss](https://mosspub.com) is a desktop publishing app; this package is its plugin API surface. Use it to write plugins that publish posts, manage site assets, or extend the editor.
 
-```bash
+- [Quickstart](#quickstart)
+- [Stability](#stability)
+- [Discussions](https://github.com/Symbiosis-Lab/moss-api/discussions) · [Issues](https://github.com/Symbiosis-Lab/moss-api/issues) · [moss.pub](https://mosspub.com)
+
+## Quickstart
+
+```sh
 npm install @symbiosis-lab/moss-api
 ```
 
-## Usage
+```ts
+import { getTauriCore, fetchUrl } from "@symbiosis-lab/moss-api";
 
-### Types
-
-```typescript
-import type {
-  DeployContext,
-  SyndicateContext,
-  HookResult,
-  PluginManifest,
-  PluginCategory,
-} from "@symbiosis-lab/moss-api";
-
-// Define your plugin manifest
-const manifest: PluginManifest = {
-  name: "my-plugin",
-  version: "1.0.0",
-  entry: "main.js",
-  category: "deployer",
-};
-
-// Implement a hook
-async function onDeploy(context: DeployContext): Promise<HookResult> {
-  // Your deployment logic here
-  return { success: true, message: "Deployed successfully" };
-}
+const html = await fetchUrl("https://example.com");
+console.log(html);
 ```
 
-### Utilities
+## Stability
 
-```typescript
-import {
-  setMessageContext,
-  reportProgress,
-  reportError,
-  reportComplete,
-  log,
-  warn,
-  error,
-} from "@symbiosis-lab/moss-api";
-
-// Set plugin context (call once at plugin initialization)
-setMessageContext("my-plugin", "on_deploy");
-
-// Report progress during long operations
-await reportProgress("deploying", 50, 100, "Uploading files...");
-
-// Log messages
-await log("Deployment started");
-await warn("Deprecation warning");
-await error("Something went wrong");
-
-// Report errors with context
-await reportError("Upload failed", "network", false);
-
-// Report completion with success and result
-await reportComplete(true, { url: "https://example.com" });
-
-// Report completion with failure
-await reportComplete(false, undefined, "Deployment failed");
-```
-
-### Browser Utilities
-
-```typescript
-import { openBrowser, closeBrowser } from "@symbiosis-lab/moss-api";
-
-// Open authentication page in action panel
-await openBrowser("https://example.com/auth");
-
-// Close browser window when done
-await closeBrowser();
-```
-
-### Tauri Utilities
-
-```typescript
-import { getTauriCore, isTauriAvailable } from "@symbiosis-lab/moss-api";
-
-// Check if running in Tauri environment
-if (isTauriAvailable()) {
-  const core = getTauriCore();
-  const result = await core.invoke("my_command", { arg: "value" });
-}
-```
-
-## API Reference
-
-### Types
-
-| Type | Description |
-|------|-------------|
-| `ProjectInfo` | Project metadata (type, folders, files) |
-| `PluginManifest` | Plugin configuration (name, version, entry, category) |
-| `PluginCategory` | Union: "generator" \| "deployer" \| "syndicator" \| "enhancer" \| "processor" |
-| `BaseContext` | Base hook context with project info |
-| `ProcessContext` | Context for before_build hook |
-| `GenerateContext` | Context for on_build hook (includes source files) |
-| `DeployContext` | Context for on_deploy hook (includes output files) |
-| `SyndicateContext` | Context for after_deploy hook (includes articles, deployment) |
-| `SourceFiles` | Categorized source files (markdown, pages, docx, other) |
-| `ArticleInfo` | Article metadata for syndication |
-| `DeploymentInfo` | Deployment result (method, url, timestamp, metadata) |
-| `HookResult` | Standard hook return type |
-| `PluginMessage` | Union of all message types |
-| `LogMessage` | Log message with level |
-| `ProgressMessage` | Progress update message |
-| `ErrorMessage` | Error message with context and fatal flag |
-| `CompleteMessage` | Completion message with result |
-
-### Functions
-
-| Function | Description |
-|----------|-------------|
-| `getTauriCore()` | Get Tauri API (throws if unavailable) |
-| `isTauriAvailable()` | Check if Tauri is available |
-| `setMessageContext(pluginName, hookName)` | Set context for messages |
-| `getMessageContext()` | Get current message context |
-| `sendMessage(message)` | Send raw message to moss |
-| `reportProgress(phase, current, total, message?)` | Report progress |
-| `reportError(error, context?, fatal?)` | Report error |
-| `reportComplete(success, result?, error?)` | Report completion |
-| `log(message)` | Log info message |
-| `warn(message)` | Log warning message |
-| `error(message)` | Log error message |
-| `openBrowser(url)` | Open URL in action panel |
-| `closeBrowser()` | Close action panel |
+This package is 0.x. The API may change between minor versions until 1.0.
+Breaking changes are documented in [CHANGELOG.md](./CHANGELOG.md).
 
 ## License
 
-MIT - see [LICENSE](LICENSE) for details.
+MIT — see [LICENSE](LICENSE).
