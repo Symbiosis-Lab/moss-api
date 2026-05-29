@@ -1,3 +1,5 @@
+> **Read-only mirror.** Source lives in the private moss monorepo. See [CONTRIBUTING.md](CONTRIBUTING.md) — PRs against this mirror cannot be merged.
+
 # moss-api
 
 [![CI](https://github.com/Symbiosis-Lab/moss-api/actions/workflows/ci.yml/badge.svg)](https://github.com/Symbiosis-Lab/moss-api/actions/workflows/ci.yml)

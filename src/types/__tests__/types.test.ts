@@ -334,9 +334,9 @@ describe("Type Definitions", () => {
         config: {},
         output_dir: "/project/.moss/build/site",
         site_files: ["index.html"],
-        domain: "guoliu.me",
+        domain: "example.com",
       };
-      expect(ctxWithDomain.domain).toBe("guoliu.me");
+      expect(ctxWithDomain.domain).toBe("example.com");
 
       const ctxWithoutDomain: DeployContext = {
         project_path: "/project",
