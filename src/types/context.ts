@@ -8,6 +8,8 @@
  */
 
 import type { ProjectInfo } from "./plugin";
+// `import type` is erased at compile time, so this does not create a runtime cycle.
+import type { TriggerContext } from "../utils/messaging";
 
 /**
  * Base context shared by all hooks
@@ -23,8 +25,15 @@ export interface BaseContext {
 
 /**
  * Context for before_build hook (process capability)
+ *
+ * `trigger` is stamped by moss (ADR-015): the plugin reads it to declare task
+ * intent via `startTask`, it does NOT guess it. Onboarding card → "onboarding_flow"
+ * (drives the ambient hairline); every build/preview rebuild → "background".
+ * Optional for backward compatibility; absent ⇒ treat as "background".
  */
-export interface ProcessContext extends BaseContext {}
+export interface ProcessContext extends BaseContext {
+  trigger?: TriggerContext;
+}
 
 /**
  * A node in the universal Page Tree.
