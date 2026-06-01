@@ -4,10 +4,8 @@
 
 [![npm](https://img.shields.io/npm/v/@symbiosis-lab/moss-api)](https://www.npmjs.com/package/@symbiosis-lab/moss-api)
 [![downloads](https://img.shields.io/npm/dm/@symbiosis-lab/moss-api)](https://www.npmjs.com/package/@symbiosis-lab/moss-api)
-[![license](https://img.shields.io/npm/l/@symbiosis-lab/moss-api)](./LICENSE)
+[![license](https://img.shields.io/badge/license-MIT-blue.svg)](./LICENSE)
 [![bundle size](https://img.shields.io/bundlephobia/minzip/@symbiosis-lab/moss-api)](https://bundlephobia.com/package/@symbiosis-lab/moss-api)
-[![status](https://img.shields.io/badge/status-experimental-orange)](#stability)
-[![discussions](https://img.shields.io/github/discussions/Symbiosis-Lab/moss-api)](https://github.com/Symbiosis-Lab/moss-api/discussions)
 
 > **Read-only mirror.** Source lives in the private moss monorepo. PRs cannot be merged here — see [CONTRIBUTING.md](CONTRIBUTING.md).
 
