@@ -71,6 +71,7 @@ export {
   fetchUrl,
   httpPost,
   httpGet,
+  htmlToMarkdown,
   downloadAsset,
   type FetchOptions,
   type FetchResult,

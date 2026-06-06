@@ -162,6 +162,17 @@ export interface PostOptions {
  * }
  * ```
  */
+/**
+ * Convert an HTML fragment to Markdown via moss's bundled `htmd` converter —
+ * the same converter the rest of the app uses. Plugins call this instead of
+ * shipping their own HTML→Markdown pass, so output (notably hard breaks, which
+ * htmd renders as two trailing spaces rather than a lone backslash) is
+ * consistent app-wide. Returns the input HTML unchanged if conversion fails.
+ */
+export async function htmlToMarkdown(html: string): Promise<string> {
+  return getTauriCore().invoke<string>("html_to_markdown", { html });
+}
+
 export async function httpPost(
   url: string,
   body: Record<string, unknown>,

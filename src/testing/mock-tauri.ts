@@ -808,6 +808,13 @@ export function setupMockTauri(options?: SetupMockTauriOptions): MockTauriContex
       // ======================================================================
       // HTTP Operations
       // ======================================================================
+      case "html_to_markdown": {
+        // Mock of moss's htmd converter. Tests don't assert on converted body
+        // content, so return the input HTML (mirrors the Rust Err-fallback) to
+        // give callers a defined string instead of an unhandled-IPC undefined.
+        return (payload?.html as string) ?? "";
+      }
+
       case "fetch_url": {
         const url = payload?.url as string;
         const response = urlConfig.getResponse(url);
