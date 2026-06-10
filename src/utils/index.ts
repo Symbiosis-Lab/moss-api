@@ -28,6 +28,13 @@ export {
   type PluginHook,
   type TriggerContext,
   type EscapeSpec,
+  // Plugin advisory path (Step 3 Phase 5, §8 + R13). A plugin PROPOSES an
+  // advisory via `handle.advise(...)`; moss holds the severity gavel.
+  type AdvisoryProposal,
+  type AdvisoryScope,
+  type AdvisorySeverity,
+  type AdvisoryAppOp,
+  type AdvisoryAction,
 } from "./messaging";
 
 // Browser

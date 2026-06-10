@@ -159,6 +159,70 @@ export type TriggerContext =
  */
 export type EscapeSpec = "cancel" | `resend:${string}` | `recheck:${string}`;
 
+// ── Advisory proposal vocabulary (Step 3 Phase 5, §8 + R13) ───────────────
+//
+// These TS types mirror the Rust serde wire shapes 1:1 (hand-written here,
+// matching the `PluginHook`/`TriggerContext` mirror pattern above — moss-api
+// is a standalone npm package and does not import the app's generated
+// `bindings.ts`). A plugin PROPOSES an advisory; moss holds the severity gavel
+// (`clamp_plugin_advisory`, R13) — the proposal is never the final word.
+
+/**
+ * Which axis of the system an advisory is about. Mirrors the Rust
+ * `advisory::Scope` (externally-tagged unit enum → bare string).
+ */
+export type AdvisoryScope =
+  | "File"
+  | "Config"
+  | "Environment"
+  | "Remote"
+  | "Account";
+
+/**
+ * How serious the plugin proposes an advisory is. moss CLAMPS this (R13): a
+ * `Blocking` proposal with no actionable affordance is demoted to a quiet
+ * `NeedsAction` hairline dot. Mirrors the Rust `advisory::Severity`.
+ */
+export type AdvisorySeverity = "ShippedDegraded" | "NeedsAction" | "Blocking";
+
+/**
+ * A closed set of in-app operations an `AdvisoryAction.InApp` can request.
+ * Mirrors the Rust `advisory::AppOp`.
+ */
+export type AdvisoryAppOp = "MoveFile" | "OpenBilling" | "SignIn" | "RecheckDns";
+
+/**
+ * The recovery affordance for an advisory, expressed as data — mirrors the
+ * Rust `advisory::Action` (externally-tagged: `"None"` for the unit variant,
+ * `{ Variant: {...} }` for data variants). `Action !== "None"` is the gavel's
+ * deciding input for whether a `Blocking` proposal may pop the panel.
+ */
+export type AdvisoryAction =
+  | "None"
+  | { Command: { run: string; label: string } }
+  | { InApp: { op: AdvisoryAppOp; args: unknown; label: string } }
+  | { Link: { href: string; label: string } };
+
+/**
+ * A plugin's PROPOSED advisory (pre-clamp). Mirrors the Rust
+ * `plugins::types::PluginAdvisory` wire shape exactly so it deserializes
+ * directly into `PluginTaskLifecycle::Succeeded/Failed { advisories }`. moss
+ * is the only constructor of a final `Advisory` — a plugin can never hand moss
+ * one (R13).
+ */
+export interface AdvisoryProposal {
+  /** Which axis of the system this advisory is about. */
+  scope: AdvisoryScope;
+  /** The severity the plugin REQUESTS. moss clamps it (R13). */
+  severity: AdvisorySeverity;
+  /** The item this is about — usually a filename. `null` for build-wide. */
+  item: string | null;
+  /** What happened (free text). */
+  what: string;
+  /** The recovery affordance the plugin proposes. */
+  action: AdvisoryAction;
+}
+
 export interface StartTaskOptions {
   /**
    * Hook the task belongs to. Defaults to "import" — the most common
@@ -225,6 +289,20 @@ export interface TaskHandle {
    * "resend:<label>" or "recheck:<label>".
    */
   awaiting(directive: string, venue: string, escape?: EscapeSpec): Promise<void>;
+  /**
+   * PROPOSE an advisory on this task (Step 3 Phase 5, §8 + R13). Accumulates
+   * the proposal on the handle; it is flushed into the next terminal call
+   * (`succeeded`/`failed`) as `advisories: PluginAdvisory[]`. moss holds the
+   * severity gavel server-side: a `Blocking` proposal with no actionable
+   * `action` is clamped to a quiet `NeedsAction` dot; an actionable `Blocking`
+   * on a `succeeded()` flips the run to `Failed` (invariant #1 — the smart
+   * constructor decides, not the plugin).
+   *
+   * `advise()` does NOT emit on its own; advisories ride the terminal IPC so
+   * moss applies them atomically with the success/failure transition. Calling
+   * `advise()` after a terminal call has no effect (the handle is spent).
+   */
+  advise(advisory: AdvisoryProposal): Promise<void>;
   /** Terminal: success. Optional human-readable receipt. */
   succeeded(receipt?: string): Promise<void>;
   /**
@@ -342,11 +420,17 @@ export async function startTask(
       id,
       async progress(): Promise<void> {},
       async awaiting(): Promise<void> {},
+      async advise(): Promise<void> {},
       async succeeded(): Promise<void> {},
       async failed(): Promise<void> {},
       async cancelled(): Promise<void> {},
     };
   }
+
+  // Advisories proposed via `advise()` accumulate here and ride the next
+  // terminal IPC (`succeeded`/`failed`) so moss applies them atomically with
+  // the success/failure transition through the smart constructors (R13).
+  const pendingAdvisories: AdvisoryProposal[] = [];
 
   return {
     id,
@@ -374,18 +458,31 @@ export async function startTask(
         escape,
       });
     },
+    async advise(advisory: AdvisoryProposal): Promise<void> {
+      // Accumulate only — the proposal is flushed on the next terminal call so
+      // moss applies it atomically with the success/failure transition.
+      pendingAdvisories.push(advisory);
+    },
     async succeeded(receipt?: string): Promise<void> {
-      await invokeLifecycle(pluginName, hook, trigger, id, {
-        type: "succeeded",
-        receipt,
-      });
+      // Only attach `advisories` when the plugin actually advised, so a run
+      // that never calls advise() keeps the legacy bare wire shape (serde
+      // defaults the field to []).
+      const lifecycle: Record<string, unknown> = { type: "succeeded", receipt };
+      if (pendingAdvisories.length > 0) {
+        lifecycle.advisories = pendingAdvisories.slice();
+      }
+      await invokeLifecycle(pluginName, hook, trigger, id, lifecycle);
     },
     async failed(error: string, recoverable: boolean = false): Promise<void> {
-      await invokeLifecycle(pluginName, hook, trigger, id, {
+      const lifecycle: Record<string, unknown> = {
         type: "failed",
         error,
         recoverable,
-      });
+      };
+      if (pendingAdvisories.length > 0) {
+        lifecycle.advisories = pendingAdvisories.slice();
+      }
+      await invokeLifecycle(pluginName, hook, trigger, id, lifecycle);
     },
     async cancelled(): Promise<void> {
       await invokeLifecycle(pluginName, hook, trigger, id, {

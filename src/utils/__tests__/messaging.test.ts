@@ -7,6 +7,7 @@ import {
   reportError,
   reportComplete,
   startTask,
+  type AdvisoryProposal,
 } from "../messaging";
 
 describe("Messaging Utilities", () => {
@@ -460,6 +461,120 @@ describe("Messaging Utilities", () => {
       expect(task.id).toBe("100");
       // Restore impl in case other tests run after.
       mockInvoke.mockImplementation(originalInvoke);
+    });
+  });
+
+  // ──────────────────────────────────────────────────────────────────────
+  // advise() — the plugin advisory path (Step 3 Phase 5 Task 5.3)
+  //
+  // A plugin PROPOSES advisories on its task; moss holds the severity gavel
+  // (R13) Rust-side. `advise()` accumulates proposals on the handle; the next
+  // terminal call (`succeeded`/`failed`) flushes them into the lifecycle IPC
+  // as `advisories: PluginAdvisory[]`. A run with no proposals keeps the
+  // legacy bare `{ type: "succeeded", receipt }` wire shape (serde defaults
+  // `advisories` to `[]`), so existing call sites are untouched.
+  // ──────────────────────────────────────────────────────────────────────
+  describe("advise()", () => {
+    beforeEach(() => {
+      mockInvoke.mockResolvedValue("7");
+    });
+
+    const authNeeded: AdvisoryProposal = {
+      scope: "Account",
+      severity: "NeedsAction",
+      item: null,
+      what: "Sign in to Matters to finish syndicating",
+      action: {
+        InApp: { op: "SignIn", args: null, label: "Sign in" },
+      },
+    };
+
+    it("accumulated advisories flush into the succeeded lifecycle", async () => {
+      setMessageContext("matters", "syndicate");
+      const task = await startTask("Syndicating", { hook: "syndicate" });
+      mockInvoke.mockClear();
+
+      await task.advise(authNeeded);
+      // advise() itself does NOT emit — it accumulates on the handle.
+      expect(mockInvoke).not.toHaveBeenCalled();
+
+      await task.succeeded("Syndicated · 3 posts");
+      expect(mockInvoke).toHaveBeenCalledWith(
+        "report_plugin_task_lifecycle_command",
+        expect.objectContaining({
+          taskId: "7",
+          lifecycle: {
+            type: "succeeded",
+            receipt: "Syndicated · 3 posts",
+            advisories: [authNeeded],
+          },
+        })
+      );
+    });
+
+    it("accumulated advisories flush into the failed lifecycle", async () => {
+      setMessageContext("matters", "syndicate");
+      const task = await startTask("Syndicating", { hook: "syndicate" });
+      mockInvoke.mockClear();
+
+      await task.advise(authNeeded);
+      await task.failed("auth expired", false);
+      expect(mockInvoke).toHaveBeenCalledWith(
+        "report_plugin_task_lifecycle_command",
+        expect.objectContaining({
+          lifecycle: {
+            type: "failed",
+            error: "auth expired",
+            recoverable: false,
+            advisories: [authNeeded],
+          },
+        })
+      );
+    });
+
+    it("no advise() ⇒ legacy bare succeeded payload (wire-compatible)", async () => {
+      setMessageContext("matters", "syndicate");
+      const task = await startTask("Syndicating", { hook: "syndicate" });
+      mockInvoke.mockClear();
+
+      await task.succeeded("Syndicated · 3 posts");
+      // No `advisories` key — serde defaults it Rust-side. This keeps the
+      // pre-Phase-5 wire shape byte-identical for plugins that never advise.
+      expect(mockInvoke).toHaveBeenCalledWith(
+        "report_plugin_task_lifecycle_command",
+        expect.objectContaining({
+          lifecycle: { type: "succeeded", receipt: "Syndicated · 3 posts" },
+        })
+      );
+    });
+
+    it("multiple advise() calls accumulate in order", async () => {
+      setMessageContext("matters", "syndicate");
+      const task = await startTask("Syndicating", { hook: "syndicate" });
+      mockInvoke.mockClear();
+
+      const degraded: AdvisoryProposal = {
+        scope: "Remote",
+        severity: "ShippedDegraded",
+        item: "post-2",
+        what: "published without a cover image",
+        action: "None",
+      };
+      await task.advise(authNeeded);
+      await task.advise(degraded);
+      await task.succeeded("Syndicated · 2 posts");
+      const lifecycle = (mockInvoke.mock.calls[0][1] as {
+        lifecycle: { advisories: AdvisoryProposal[] };
+      }).lifecycle;
+      expect(lifecycle.advisories).toEqual([authNeeded, degraded]);
+    });
+
+    it("out-of-Tauri context: advise() is a no-op and never throws", async () => {
+      (globalThis as unknown as { window: unknown }).window = {};
+      const task = await startTask("Syndicating", { hook: "syndicate" });
+      expect(task.id).toBe("-1");
+      await expect(task.advise(authNeeded)).resolves.toBeUndefined();
+      await expect(task.succeeded("done")).resolves.toBeUndefined();
     });
   });
 });
