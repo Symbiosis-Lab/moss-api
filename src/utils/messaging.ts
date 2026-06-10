@@ -249,6 +249,17 @@ export interface StartTaskOptions {
    * renderers can show / hide a cancel affordance.
    */
   cancellable?: boolean;
+  /**
+   * Plugin-local job id referencing `contributes.jobs[id]` in the plugin's
+   * manifest (Step 3 Phase 5, §8 + R13). When set, moss looks up the declared
+   * descriptor (a past-tense `verb` + an amount `noun`), normalizes the verb
+   * (`Verb::normalized` — moss owns capitalization/length/glyphs), and on a
+   * `succeeded(receipt, count)` stamps its OWN typed `Verb` + `Amount { count,
+   * noun }` on the Job — rendering "Syndicated · N posts" from moss's value
+   * objects, never the plugin's pre-formatted `receipt` string. Omit it for
+   * free-text-receipt tasks (the legacy path, byte-identical).
+   */
+  job?: string;
 }
 
 /**
@@ -300,11 +311,22 @@ export interface TaskHandle {
    *
    * `advise()` does NOT emit on its own; advisories ride the terminal IPC so
    * moss applies them atomically with the success/failure transition. Calling
-   * `advise()` after a terminal call has no effect (the handle is spent).
+   * `advise()` after a terminal call has no effect — the handle is spent (the
+   * terminal methods set a spent flag and `advise()` no-ops once spent).
    */
   advise(advisory: AdvisoryProposal): Promise<void>;
-  /** Terminal: success. Optional human-readable receipt. */
-  succeeded(receipt?: string): Promise<void>;
+  /**
+   * Terminal: success.
+   *
+   * @param receipt Optional human-readable receipt (the legacy free-text path).
+   *   IGNORED for the verb/amount when the task declared a `job` descriptor —
+   *   moss renders the receipt from its OWN normalized verb + amount instead.
+   * @param amount Optional success COUNT. Only meaningful when `startTask` was
+   *   given a `job` id: moss pairs this count with the descriptor's `noun` to
+   *   stamp `Amount { count, noun }` and renders "Syndicated · N posts" from its
+   *   value objects.
+   */
+  succeeded(receipt?: string, amount?: number): Promise<void>;
   /**
    * Terminal: failure. `recoverable=false` (default) also fires the
    * toast subscriber (ADR-015 § "Plugin-originated failure toasts").
@@ -403,12 +425,18 @@ export async function startTask(
   // route to the right task.
   const pluginName = currentPluginName;
 
-  const id = await invokeLifecycle(pluginName, hook, trigger, undefined, {
+  const started: Record<string, unknown> = {
     type: "started",
     label,
     has_progress: hasProgress,
     cancellable,
-  });
+  };
+  // Reference the manifest job descriptor so moss can stamp its OWN
+  // normalized verb + amount on the terminal (Step 3 Phase 5, §8 + R13).
+  if (options.job !== undefined) {
+    started.job = options.job;
+  }
+  const id = await invokeLifecycle(pluginName, hook, trigger, undefined, started);
 
   // Out-of-Tauri context (unit tests, browser preview): startTask
   // already returned the sentinel id. Hand back a fully no-op
@@ -431,6 +459,11 @@ export async function startTask(
   // terminal IPC (`succeeded`/`failed`) so moss applies them atomically with
   // the success/failure transition through the smart constructors (R13).
   const pendingAdvisories: AdvisoryProposal[] = [];
+  // Set by any terminal call (`succeeded`/`failed`/`cancelled`). Once spent,
+  // `advise()` no-ops — the handle is dead and a late advisory would otherwise
+  // silently ride a SECOND terminal call (or leak). This enforces the
+  // "advise() after a terminal call has no effect" contract the JSDoc promises.
+  let spent = false;
 
   return {
     id,
@@ -459,11 +492,16 @@ export async function startTask(
       });
     },
     async advise(advisory: AdvisoryProposal): Promise<void> {
+      // No-op once the handle is spent (a terminal call already fired): a late
+      // advisory has nowhere to ride. Honors the "advise() after a terminal
+      // call has no effect" contract.
+      if (spent) return;
       // Accumulate only — the proposal is flushed on the next terminal call so
       // moss applies it atomically with the success/failure transition.
       pendingAdvisories.push(advisory);
     },
-    async succeeded(receipt?: string): Promise<void> {
+    async succeeded(receipt?: string, amount?: number): Promise<void> {
+      spent = true;
       // Only attach `advisories` when the plugin actually advised, so a run
       // that never calls advise() keeps the legacy bare wire shape (serde
       // defaults the field to []).
@@ -471,9 +509,16 @@ export async function startTask(
       if (pendingAdvisories.length > 0) {
         lifecycle.advisories = pendingAdvisories.slice();
       }
+      // The COUNT for a descriptor-driven job (Step 3 Phase 5): moss pairs it
+      // with the declared `noun` to render "Syndicated · N posts" from its own
+      // value objects. Omitted ⇒ serde defaults to None (no amount stamped).
+      if (amount !== undefined) {
+        lifecycle.amount = amount;
+      }
       await invokeLifecycle(pluginName, hook, trigger, id, lifecycle);
     },
     async failed(error: string, recoverable: boolean = false): Promise<void> {
+      spent = true;
       const lifecycle: Record<string, unknown> = {
         type: "failed",
         error,
@@ -485,6 +530,7 @@ export async function startTask(
       await invokeLifecycle(pluginName, hook, trigger, id, lifecycle);
     },
     async cancelled(): Promise<void> {
+      spent = true;
       await invokeLifecycle(pluginName, hook, trigger, id, {
         type: "cancelled",
       });

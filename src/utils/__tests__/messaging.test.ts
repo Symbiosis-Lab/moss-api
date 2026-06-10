@@ -576,5 +576,62 @@ describe("Messaging Utilities", () => {
       await expect(task.advise(authNeeded)).resolves.toBeUndefined();
       await expect(task.succeeded("done")).resolves.toBeUndefined();
     });
+
+    // ── descriptor-driven verb/amount (Step 3 Phase 5, §8 + R13) ──────────
+
+    it("job ref flows into the started lifecycle for descriptor lookup", async () => {
+      setMessageContext("matters", "syndicate");
+      await startTask("Syndicate", { hook: "syndicate", job: "syndicate" });
+      expect(mockInvoke).toHaveBeenCalledWith(
+        "report_plugin_task_lifecycle_command",
+        expect.objectContaining({
+          lifecycle: expect.objectContaining({ type: "started", job: "syndicate" }),
+        })
+      );
+    });
+
+    it("no job ref ⇒ legacy started payload (no job key, wire-compatible)", async () => {
+      setMessageContext("matters", "syndicate");
+      await startTask("Syndicate", { hook: "syndicate" });
+      const lifecycle = (mockInvoke.mock.calls[0][1] as { lifecycle: Record<string, unknown> })
+        .lifecycle;
+      expect(lifecycle).not.toHaveProperty("job");
+    });
+
+    it("succeeded(receipt, count) sends the amount for descriptor jobs", async () => {
+      setMessageContext("matters", "syndicate");
+      const task = await startTask("Syndicate", { hook: "syndicate", job: "syndicate" });
+      mockInvoke.mockClear();
+
+      // moss owns the receipt — the plugin reports the COUNT, not a string.
+      await task.succeeded(undefined, 3);
+      expect(mockInvoke).toHaveBeenCalledWith(
+        "report_plugin_task_lifecycle_command",
+        expect.objectContaining({
+          lifecycle: { type: "succeeded", receipt: undefined, amount: 3 },
+        })
+      );
+    });
+
+    it("succeeded() without a count omits amount (serde defaults None)", async () => {
+      setMessageContext("matters", "syndicate");
+      const task = await startTask("Syndicate", { hook: "syndicate" });
+      mockInvoke.mockClear();
+      await task.succeeded("legacy receipt");
+      const lifecycle = (mockInvoke.mock.calls[0][1] as { lifecycle: Record<string, unknown> })
+        .lifecycle;
+      expect(lifecycle).not.toHaveProperty("amount");
+    });
+
+    it("advise() after a terminal call is a no-op (handle is spent)", async () => {
+      setMessageContext("matters", "syndicate");
+      const task = await startTask("Syndicate", { hook: "syndicate" });
+      await task.succeeded(undefined, 1);
+      mockInvoke.mockClear();
+
+      // A late advise() must NOT accumulate, and must NOT ride any further IPC.
+      await task.advise(authNeeded);
+      expect(mockInvoke).not.toHaveBeenCalled();
+    });
   });
 });
