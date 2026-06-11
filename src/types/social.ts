@@ -7,7 +7,13 @@ export interface SocialComment {
   createdAt: string;
   author: { displayName: string; url?: string };
   replyToId?: string;
-  state?: "active" | "removed" | "archived" | "banned" | "collapsed";
+  /**
+   * Moderation state. Absent or "active" = visible; anything else is filtered
+   * at read time. Well-known values: "active" | "removed" | "archived" |
+   * "banned" | "collapsed". The Rust side treats this as an open string so
+   * future states do not require a client update.
+   */
+  state?: string;
 }
 
 export interface SocialArticleData {
