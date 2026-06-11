@@ -246,10 +246,10 @@ export async function listSourceFiles(): Promise<string[]> {
 // ============================================================================
 
 /**
- * List social data source names from .moss/social/*.json
+ * List social data source names from .moss/data/social/*.json
  *
  * Returns file stems (without .json extension) for all JSON files
- * in the project's .moss/social/ directory. Returns empty array
+ * in the project's .moss/data/social/ directory. Returns empty array
  * if directory doesn't exist.
  *
  * @returns Array of source names (e.g., ["comment", "douban", "matters"])
