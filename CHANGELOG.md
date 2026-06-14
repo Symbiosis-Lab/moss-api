@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+_Pending publish — cumulative since `0.7.12` (last released on main); full detail under [0.8.0]._
+- `SocialComment` social-layer comment type, `contributes.jobs` plugin job descriptor, `startTask()` API, and `exposeAdvisoryPath()` utility.
+
 ## [0.8.0] - 2026-06-11
 
 ### Added
