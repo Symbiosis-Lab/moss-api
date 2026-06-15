@@ -68,10 +68,8 @@ export interface PageNode {
   nav: boolean;
   /** Navigation ordering (lower = first) */
   nav_weight?: number;
-  /** Don't generate page at all */
+  /** Whether this page is a draft — rendered and published at its direct URL but hidden from listings, feeds, and navigation. */
   draft: boolean;
-  /** Generate page but hide from parent's child list */
-  unlisted: boolean;
   /** Recursively list all nested content */
   flatten: boolean;
   /** How children display: "list", "grid", or "sidebar" */
