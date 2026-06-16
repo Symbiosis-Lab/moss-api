@@ -263,6 +263,96 @@ export async function httpGet(
 }
 
 /**
+ * One ordered text field in a multipart/form-data POST.
+ *
+ * Order is preserved because the GraphQL multipart request spec requires
+ * `operations` before `map` before the file parts.
+ */
+export interface MultipartTextField {
+  /** Form field name (e.g. "operations", "map"). */
+  name: string;
+  /** Field value (e.g. the JSON-encoded GraphQL operation). */
+  value: string;
+}
+
+/**
+ * One file part in a multipart/form-data POST. Bytes are passed base64-encoded —
+ * e.g. straight from `readSiteFile`, which already returns base64.
+ */
+export interface MultipartFilePart {
+  /** Form field name for this file (e.g. "0" per the GraphQL multipart spec). */
+  field: string;
+  /** File name reported in the part's Content-Disposition. */
+  filename: string;
+  /** MIME type for the part's Content-Type header. */
+  contentType: string;
+  /** File contents, base64-encoded. */
+  contentBase64: string;
+}
+
+/**
+ * Options for a multipart POST request.
+ */
+export interface MultipartPostOptions {
+  /** Timeout in milliseconds (default: 30000) */
+  timeoutMs?: number;
+  /** Additional headers (Content-Type is set automatically and cannot be overridden) */
+  headers?: Record<string, string>;
+}
+
+/**
+ * Perform an HTTP POST with a `multipart/form-data` body.
+ *
+ * Unlike {@link httpPost} (JSON-only), this sends ordered text fields plus
+ * binary file parts — enabling uploads to GraphQL `singleFileUpload`-style
+ * endpoints. File bytes are passed base64-encoded (so they survive the IPC
+ * boundary and can come directly from {@link readSiteFile}); moss builds the
+ * multipart body, generates the boundary, and sets the Content-Type.
+ *
+ * @example
+ * ```typescript
+ * const res = await httpPostMultipart(endpoint, {
+ *   textFields: [
+ *     { name: "operations", value: JSON.stringify({ query, variables }) },
+ *     { name: "map", value: JSON.stringify({ "0": ["variables.input.file"] }) },
+ *   ],
+ *   files: [{ field: "0", filename: "photo.jpg", contentType: "image/jpeg", contentBase64 }],
+ * }, { headers: { "x-access-token": token } });
+ * ```
+ */
+export async function httpPostMultipart(
+  url: string,
+  parts: { textFields?: MultipartTextField[]; files?: MultipartFilePart[] },
+  options: MultipartPostOptions = {}
+): Promise<FetchResult> {
+  const { timeoutMs = 30000, headers = {} } = options;
+
+  const result = await getTauriCore().invoke<TauriFetchResult>(
+    "http_post_multipart",
+    {
+      url,
+      textFields: parts.textFields ?? [],
+      files: parts.files ?? [],
+      headers,
+      timeoutMs,
+    }
+  );
+
+  const binaryString = atob(result.body_base64);
+  const bytes = Uint8Array.from(binaryString, (char) => char.charCodeAt(0));
+
+  return {
+    status: result.status,
+    ok: result.ok,
+    contentType: result.content_type,
+    body: bytes,
+    text(): string {
+      return new TextDecoder().decode(bytes);
+    },
+  };
+}
+
+/**
  * Download a URL and save directly to disk
  *
  * Downloads the file and writes it directly to disk without passing
