@@ -41,6 +41,7 @@ export {
 export {
   openBrowser,
   closeBrowser,
+  returnToEditor,
   openSystemBrowser,
   openBrowserWithHtml,
   showBrowserForm,

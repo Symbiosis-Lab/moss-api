@@ -156,6 +156,18 @@ export async function closeBrowser(): Promise<void> {
 }
 
 /**
+ * Ask the app shell to restore the editor in the action panel after a login
+ * flow cancel or failure. Clears the onboarding latch and re-mounts the
+ * editor (empty-folder onboarding cards) in the action panel slot.
+ *
+ * Call this after `promptLogin()` returns false on an import (binding /
+ * prompt_login) path so the user isn't left with an empty action panel.
+ */
+export async function returnToEditor(): Promise<void> {
+  await getTauriCore().invoke("return_to_editor", {});
+}
+
+/**
  * Open a URL in the system's default browser
  *
  * Useful for OAuth flows where the user may already be logged in
