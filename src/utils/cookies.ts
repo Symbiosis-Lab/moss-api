@@ -100,3 +100,20 @@ export async function setPluginCookie(cookies: Cookie[]): Promise<void> {
     cookies,
   });
 }
+
+/**
+ * Delete ALL cookies on the current plugin's registered (manifest) domain from
+ * the shared WebKit store. Used for force-fresh login: clears any lingering
+ * server session so the login webview presents a real credential screen.
+ *
+ * The plugin's identity is auto-detected from the runtime context.
+ * **Must be called from within a plugin hook.**
+ */
+export async function clearPluginCookies(): Promise<void> {
+  const ctx = getInternalContext();
+
+  await getTauriCore().invoke("clear_plugin_cookies", {
+    pluginName: ctx.plugin_name,
+    projectPath: ctx.project_path,
+  });
+}

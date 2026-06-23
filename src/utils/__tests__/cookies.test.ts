@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
-import { getPluginCookie, setPluginCookie } from "../cookies";
+import { getPluginCookie, setPluginCookie, clearPluginCookies } from "../cookies";
 
 describe("Cookie Utilities", () => {
   const originalWindow = globalThis.window;
@@ -198,6 +198,42 @@ describe("Cookie Utilities", () => {
       await expect(
         setPluginCookie([{ name: "a", value: "b" }])
       ).rejects.toThrow("Failed to save cookies");
+    });
+  });
+
+  describe("clearPluginCookies", () => {
+    it("invokes clear_plugin_cookies with the plugin name and project path", async () => {
+      mockWindow.__MOSS_INTERNAL_CONTEXT__ = {
+        plugin_name: "matters",
+        project_path: "/test/project",
+        moss_dir: "/test/project/.moss",
+      };
+      mockInvoke.mockResolvedValue(undefined);
+
+      await clearPluginCookies();
+
+      expect(mockInvoke).toHaveBeenCalledWith("clear_plugin_cookies", {
+        pluginName: "matters",
+        projectPath: "/test/project",
+      });
+    });
+
+    it("throws descriptive error when called outside hook", async () => {
+      // No context set
+      await expect(clearPluginCookies()).rejects.toThrow(
+        /must be called from within a plugin hook/
+      );
+    });
+
+    it("propagates errors from Tauri", async () => {
+      mockWindow.__MOSS_INTERNAL_CONTEXT__ = {
+        plugin_name: "plugin",
+        project_path: "/project",
+        moss_dir: "/project/.moss",
+      };
+      mockInvoke.mockRejectedValue(new Error("Failed to clear cookies"));
+
+      await expect(clearPluginCookies()).rejects.toThrow("Failed to clear cookies");
     });
   });
 });

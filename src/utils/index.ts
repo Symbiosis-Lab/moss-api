@@ -129,6 +129,7 @@ export {
 export {
   getPluginCookie,
   setPluginCookie,
+  clearPluginCookies,
   type Cookie,
 } from "./cookies";
 
