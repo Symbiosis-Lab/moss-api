@@ -13,6 +13,7 @@
 
 /**
  * GitHub Releases download source.
+ * @category Binary resolution
  */
 export interface GitHubSource {
   /** Repository owner (e.g., "gohugoio") */
@@ -27,11 +28,13 @@ export interface GitHubSource {
 
 /**
  * Archive format for downloaded binaries.
+ * @category Binary resolution
  */
 export type ArchiveFormat = "tar_gz" | "zip" | "raw";
 
 /**
  * Platform-specific download source for a binary.
+ * @category Binary resolution
  */
 export interface BinarySource {
   /** Fetch a release asset via the GitHub Releases API. */
@@ -46,6 +49,7 @@ export interface BinarySource {
 
 /**
  * How to verify a binary works and extract its version.
+ * @category Binary resolution
  */
 export interface VersionCheck {
   /** Arguments to pass (e.g., ["--version"]) */
@@ -56,6 +60,7 @@ export interface VersionCheck {
 
 /**
  * Describes the internal layout of an archive for complex distributions.
+ * @category Binary resolution
  */
 export interface ArchiveLayout {
   /** Path to the main binary inside the archive (e.g., "bin/git"). */
@@ -69,6 +74,7 @@ export interface ArchiveLayout {
  *
  * Platform-specific sources are keyed by platform string
  * (e.g., "darwin-arm64", "darwin-x64", "linux-x64", "windows-x64").
+ * @category Binary resolution
  */
 export interface BinaryConfig {
   /** Human-readable name (e.g., "hugo", "ffmpeg", "git") */
@@ -89,11 +95,13 @@ export interface BinaryConfig {
 
 /**
  * How the binary was found during resolution.
+ * @category Binary resolution
  */
 export type ResolutionSource = "configured_path" | "system_path" | "cache" | "downloaded";
 
 /**
  * The result of successfully resolving a binary.
+ * @category Binary resolution
  */
 export interface BinaryResolution {
   /** Absolute path to the binary (or just the name if found in system PATH). */
@@ -106,6 +114,7 @@ export interface BinaryResolution {
 
 /**
  * Options for binary resolution
+ * @category Binary resolution
  */
 export interface ResolveBinaryOptions {
   /** User-configured binary path to check first. */
@@ -122,6 +131,7 @@ export interface ResolveBinaryOptions {
 
 /**
  * Error thrown during binary resolution
+ * @category Binary resolution
  */
 export class BinaryResolutionError extends Error {
   constructor(
@@ -170,6 +180,7 @@ export class BinaryResolutionError extends Error {
  *
  * await executeBinary({ binaryPath: resolution.path, args: ["--version"] });
  * ```
+ * @category Binary resolution
  */
 export async function resolveBinary(
   config: BinaryConfig,

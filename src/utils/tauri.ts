@@ -1,5 +1,6 @@
 /**
  * Tauri core utilities for plugin communication
+ * @category Tauri core (deprecated)
  */
 
 export interface TauriCore {
@@ -22,6 +23,7 @@ interface TauriWindow {
  * - Cookies: `getPluginCookie`, `setPluginCookie`
  *
  * @throws Error if Tauri is not available
+ * @category Tauri core (deprecated)
  */
 export function getTauriCore(): TauriCore {
   const w = window as unknown as TauriWindow;
@@ -33,6 +35,7 @@ export function getTauriCore(): TauriCore {
 
 /**
  * Check if Tauri is available
+ * @category Tauri core (deprecated)
  */
 export function isTauriAvailable(): boolean {
   const w = window as unknown as TauriWindow;

@@ -2,6 +2,7 @@
  * Base plugin types shared across all moss plugins
  */
 
+/** @category Plugin manifest */
 export interface ProjectInfo {
   project_type: string;
   content_folders: string[];
@@ -17,6 +18,7 @@ export interface ProjectInfo {
   lang?: string;
 }
 
+/** @category Plugin manifest */
 export interface PluginManifest {
   name: string;
   version: string;
@@ -28,6 +30,7 @@ export interface PluginManifest {
   config?: Record<string, unknown>;
 }
 
+/** @category Plugin manifest */
 export type PluginCategory =
   | "generator"
   | "deployer"

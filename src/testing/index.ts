@@ -21,15 +21,15 @@
  *   });
  *
  *   it("reads and writes files", async () => {
- *     // Set up initial file
- *     ctx.filesystem.setFile("/project/input.md", "# Hello");
+ *     // Seed a file at the mock project root (default: /test/project)
+ *     ctx.filesystem.setFile("/test/project/input.md", "# Hello");
  *
- *     // Use moss-api functions
- *     const content = await readFile("/project", "input.md");
- *     await writeFile("/project", "output.md", content.toUpperCase());
+ *     // moss-api file functions resolve paths against the project context
+ *     const content = await readFile("input.md");
+ *     await writeFile("output.md", content.toUpperCase());
  *
  *     // Verify
- *     expect(ctx.filesystem.getFile("/project/output.md")?.content).toBe("# HELLO");
+ *     expect(ctx.filesystem.getFile("/test/project/output.md")?.content).toBe("# HELLO");
  *   });
  * });
  * ```
@@ -47,6 +47,7 @@ export {
   createMockBinaryConfig,
   createMockCookieStorage,
   createMockBrowserTracker,
+  createMockDialogTracker,
   // Types
   type SetupMockTauriOptions,
   type MockTauriContext,
@@ -59,4 +60,6 @@ export {
   type MockBinaryResult,
   type MockCookieStorage,
   type MockBrowserTracker,
+  type MockDialogTracker,
+  type MockDialogResult,
 } from "./mock-tauri";

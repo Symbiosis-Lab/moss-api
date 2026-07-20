@@ -17,6 +17,8 @@ import type { TriggerContext } from "../utils/messaging";
  * Contains only business data - no paths.
  * Use readFile(), writeFile() for project files.
  * Use readPluginFile(), writePluginFile() for plugin storage.
+ *
+ * @category Hook contexts
  */
 export interface BaseContext {
   project_info: ProjectInfo;
@@ -30,6 +32,8 @@ export interface BaseContext {
  * intent via `startTask`, it does NOT guess it. Onboarding card → "onboarding_flow"
  * (drives the ambient hairline); every build/preview rebuild → "background".
  * Optional for backward compatibility; absent ⇒ treat as "background".
+ *
+ * @category Hook contexts
  */
 export interface ProcessContext extends BaseContext {
   trigger?: TriggerContext;
@@ -42,6 +46,8 @@ export interface ProcessContext extends BaseContext {
  * Folders have is_folder=true and may have children.
  * This is the universal intermediate representation consumed by
  * both the built-in generator and SSG plugins.
+ *
+ * @category Hook contexts
  */
 export interface PageNode {
   /** Relative source path (e.g., "articles/hello.md" or "articles") */
@@ -83,6 +89,8 @@ export interface PageNode {
 
 /**
  * Context for on_build hook (generator plugins)
+ *
+ * @category Hook contexts
  */
 export interface GenerateContext extends BaseContext {
   source_files: SourceFiles;
@@ -92,6 +100,8 @@ export interface GenerateContext extends BaseContext {
 
 /**
  * Context for on_deploy hook (deployer plugins)
+ *
+ * @category Hook contexts
  */
 export interface DeployContext extends BaseContext {
   site_files: string[];
@@ -122,6 +132,8 @@ export interface DeployContext extends BaseContext {
  * - Call 1: Sets CNAME file via API
  * - Call 2: Verifies CNAME is set, enforces HTTPS via API
  * - Call 3+: Both already done, returns success without changes
+ *
+ * @category Hook contexts
  */
 export interface ConfigureDomainContext extends BaseContext {
   /** The custom domain being configured (e.g., "example.com") */
@@ -132,6 +144,8 @@ export interface ConfigureDomainContext extends BaseContext {
 
 /**
  * Context for after_deploy hook (syndicator plugins)
+ *
+ * @category Hook contexts
  */
 export interface SyndicateContext extends BaseContext {
   site_files: string[];
@@ -141,6 +155,8 @@ export interface SyndicateContext extends BaseContext {
 
 /**
  * Source files categorized by type
+ *
+ * @category Hook contexts
  */
 export interface SourceFiles {
   markdown: string[];
@@ -151,6 +167,8 @@ export interface SourceFiles {
 
 /**
  * Article information for syndication
+ *
+ * @category Hook contexts
  */
 export interface ArticleInfo {
   source_path: string;
@@ -166,6 +184,8 @@ export interface ArticleInfo {
 
 /**
  * Deployment result information
+ *
+ * @category Hook contexts
  */
 export interface DeploymentInfo {
   method: string;
@@ -178,6 +198,8 @@ export interface DeploymentInfo {
 
 /**
  * A single DNS record provided by deploy plugins
+ *
+ * @category Hook contexts
  */
 export interface DnsRecord {
   /** Record type: "A", "AAAA", "CNAME", "TXT", etc. */
@@ -195,6 +217,8 @@ export interface DnsRecord {
  *
  * Plugins are responsible for generating the appropriate DNS records
  * for their platform. moss just passes these through to DNS configuration.
+ *
+ * @category Hook contexts
  */
 export interface DnsTarget {
   /** List of DNS records to configure */

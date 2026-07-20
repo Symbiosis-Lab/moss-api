@@ -16,6 +16,7 @@ let currentHookName = "";
 /**
  * Set the message context for subsequent messages
  * This is typically called automatically by the plugin runtime
+ * @category Messaging
  */
 export function setMessageContext(pluginName: string, hookName: string): void {
   currentPluginName = pluginName;
@@ -24,6 +25,7 @@ export function setMessageContext(pluginName: string, hookName: string): void {
 
 /**
  * Get the current message context
+ * @category Messaging
  */
 export function getMessageContext(): { pluginName: string; hookName: string } {
   return { pluginName: currentPluginName, hookName: currentHookName };
@@ -34,6 +36,7 @@ export function getMessageContext(): { pluginName: string; hookName: string } {
  *
  * Log and progress messages use events (fire-and-forget) to avoid blocking IPC.
  * Complete and error messages use commands (request-response) for acknowledgment.
+ * @category Messaging
  */
 export async function sendMessage(message: PluginMessage): Promise<void> {
   // For log and progress messages, use events (fire-and-forget)
@@ -72,6 +75,7 @@ export async function sendMessage(message: PluginMessage): Promise<void> {
 
 /**
  * Report progress to moss
+ * @category Messaging
  */
 export async function reportProgress(
   phase: string,
@@ -84,6 +88,7 @@ export async function reportProgress(
 
 /**
  * Report an error to moss
+ * @category Messaging
  */
 export async function reportError(
   error: string,
@@ -98,6 +103,7 @@ export async function reportError(
  * @param success - Whether the operation succeeded
  * @param result - Optional result data
  * @param error - Optional error message (only used when success is false)
+ * @category Messaging
  */
 export async function reportComplete(
   success: boolean,
@@ -130,6 +136,7 @@ export async function reportComplete(
  * `PluginHook × TriggerContext` to pick a UI surface for the task.
  * Plugin authors pick the hook that matches what they're doing; they
  * do NOT pick the surface (the router owns that).
+ * @category Messaging
  */
 export type PluginHook =
   | "import"
@@ -144,6 +151,7 @@ export type PluginHook =
  * the task was invoked so it can pick a surface that matches the user's
  * focus context (onboarding cards → ActionPanel; background sync →
  * Workspace).
+ * @category Messaging
  */
 export type TriggerContext =
   | "onboarding_flow"
@@ -156,6 +164,7 @@ export type TriggerContext =
  * free-text affordance label after the colon, mirroring the dev harness
  * dialect (e.g., `"resend:Resend email"`, `"recheck:Recheck DNS"`).
  * Plain `"cancel"` carries no label.
+ * @category Messaging
  */
 export type EscapeSpec = "cancel" | `resend:${string}` | `recheck:${string}`;
 
@@ -170,6 +179,7 @@ export type EscapeSpec = "cancel" | `resend:${string}` | `recheck:${string}`;
 /**
  * Which axis of the system an advisory is about. Mirrors the Rust
  * `advisory::Scope` (externally-tagged unit enum → bare string).
+ * @category Messaging
  */
 export type AdvisoryScope =
   | "File"
@@ -182,12 +192,14 @@ export type AdvisoryScope =
  * How serious the plugin proposes an advisory is. moss CLAMPS this (R13): a
  * `Blocking` proposal with no actionable affordance is demoted to a quiet
  * `NeedsAction` hairline dot. Mirrors the Rust `advisory::Severity`.
+ * @category Messaging
  */
 export type AdvisorySeverity = "ShippedDegraded" | "NeedsAction" | "Blocking";
 
 /**
  * A closed set of in-app operations an `AdvisoryAction.InApp` can request.
  * Mirrors the Rust `advisory::AppOp`.
+ * @category Messaging
  */
 export type AdvisoryAppOp = "MoveFile" | "OpenBilling" | "SignIn" | "RecheckDns";
 
@@ -196,6 +208,7 @@ export type AdvisoryAppOp = "MoveFile" | "OpenBilling" | "SignIn" | "RecheckDns"
  * Rust `advisory::Action` (externally-tagged: `"None"` for the unit variant,
  * `{ Variant: {...} }` for data variants). `Action !== "None"` is the gavel's
  * deciding input for whether a `Blocking` proposal may pop the panel.
+ * @category Messaging
  */
 export type AdvisoryAction =
   | "None"
@@ -209,6 +222,7 @@ export type AdvisoryAction =
  * directly into `PluginTaskLifecycle::Succeeded/Failed { advisories }`. moss
  * is the only constructor of a final `Advisory` — a plugin can never hand moss
  * one (R13).
+ * @category Messaging
  */
 export interface AdvisoryProposal {
   /** Which axis of the system this advisory is about. */
@@ -223,6 +237,7 @@ export interface AdvisoryProposal {
   action: AdvisoryAction;
 }
 
+/** @category Messaging */
 export interface StartTaskOptions {
   /**
    * Hook the task belongs to. Defaults to "import" — the most common
@@ -276,6 +291,7 @@ export interface StartTaskOptions {
  *
  * `progress()` after `awaiting()` implicitly transitions back to Running
  * (no explicit `resumed()`).
+ * @category Messaging
  */
 export interface TaskHandle {
   /**
@@ -297,7 +313,7 @@ export interface TaskHandle {
    * "Waiting for you to [directive] in [venue]" copy.
    *
    * `escape` defaults to "cancel". For non-cancel escapes, pass
-   * "resend:<label>" or "recheck:<label>".
+   * `"resend:<label>"` or `"recheck:<label>"`.
    */
   awaiting(directive: string, venue: string, escape?: EscapeSpec): Promise<void>;
   /**
@@ -357,6 +373,7 @@ export interface TaskHandle {
  * literal — use `TaskHandle.id === OUT_OF_TAURI_TASK_ID` is the
  * only legitimate check, and the `TaskHandle` methods already
  * encapsulate it.
+ * @category Messaging
  */
 export const OUT_OF_TAURI_TASK_ID = "-1";
 
@@ -411,6 +428,7 @@ async function invokeLifecycle(
  *   await importOne(articles[i]);
  * }
  * await task.succeeded(`Imported ${articles.length} articles`);
+ * @category Messaging
  */
 export async function startTask(
   label: string,

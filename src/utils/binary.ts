@@ -18,6 +18,7 @@ import { onEvent } from "./events";
 
 /**
  * Options for executing a binary
+ * @category Binary execution
  */
 export interface ExecuteOptions {
   /** Path to the binary (can be just the name if in PATH) */
@@ -43,6 +44,7 @@ export interface ExecuteOptions {
 
 /**
  * Result from binary execution
+ * @category Binary execution
  */
 export interface ExecuteResult {
   /** Whether the command succeeded (exit code 0) */
@@ -111,6 +113,8 @@ interface BinaryOutputEvent {
  *   env: { NODE_ENV: "production" },
  * });
  * ```
+ *
+ * @category Binary execution
  */
 export async function executeBinary(
   options: ExecuteOptions

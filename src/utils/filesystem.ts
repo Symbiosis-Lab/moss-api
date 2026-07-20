@@ -31,6 +31,7 @@ import { getInternalContext } from "./context";
  * // Read package.json
  * const pkg = JSON.parse(await readFile("package.json"));
  * ```
+ * @category Filesystem
  */
 export async function readFile(relativePath: string): Promise<string> {
   const ctx = getInternalContext();
@@ -59,6 +60,7 @@ export async function readFile(relativePath: string): Promise<string> {
  * // Write index page
  * await writeFile("index.md", markdownContent);
  * ```
+ * @category Filesystem
  */
 export async function writeFile(
   relativePath: string,
@@ -89,6 +91,7 @@ export async function writeFile(
  *
  * const mdFiles = files.filter(f => f.endsWith(".md"));
  * ```
+ * @category Filesystem
  */
 export async function listFiles(): Promise<string[]> {
   const ctx = getInternalContext();
@@ -98,7 +101,10 @@ export async function listFiles(): Promise<string[]> {
   });
 }
 
-/** A project file with home-file annotation from Rust's detect_home_file_in_folder */
+/**
+ * A project file with home-file annotation from Rust's detect_home_file_in_folder
+ * @category Filesystem
+ */
 export interface ProjectFileEntry {
   path: string;
   is_home: boolean;
@@ -112,6 +118,7 @@ export interface ProjectFileEntry {
  * Detection uses the same logic as the built-in generator.
  *
  * @returns Array of file entries with is_home annotations
+ * @category Filesystem
  */
 export async function listProjectTree(): Promise<ProjectFileEntry[]> {
   return getTauriCore().invoke<ProjectFileEntry[]>("list_project_tree", {});
@@ -132,6 +139,7 @@ export async function listProjectTree(): Promise<ProjectFileEntry[]> {
  *   const content = await readFile("index.md");
  * }
  * ```
+ * @category Filesystem
  */
 export async function fileExists(relativePath: string): Promise<boolean> {
   // First, verify we have context (this will throw if not in a hook)
@@ -161,6 +169,7 @@ export async function fileExists(relativePath: string): Promise<boolean> {
  * // Create a symlink from runtime/content/post.md -> 文章/post.md
  * await createSymlink("文章/post.md", ".moss/.runtime/hugo/content/posts/post.md");
  * ```
+ * @category Filesystem
  */
 export async function createSymlink(
   targetPath: string,
@@ -194,6 +203,7 @@ export async function createSymlink(
  * const base64Content = await readSiteFile("index.html");
  * const base64Image = await readSiteFile("assets/logo.png");
  * ```
+ * @category Filesystem
  */
 export async function readSiteFile(relativePath: string): Promise<string> {
   return getTauriCore().invoke<string>("read_site_file", { relativePath });
@@ -213,6 +223,7 @@ export async function readSiteFile(relativePath: string): Promise<string> {
  * ```typescript
  * const base64Content = await readProjectFileBase64("posts/article.md");
  * ```
+ * @category Filesystem
  */
 export async function readProjectFileBase64(
   relativePath: string
@@ -236,6 +247,7 @@ export async function readProjectFileBase64(
  * const sourceFiles = await listSourceFiles();
  * // ["index.md", "posts/hello.md", "assets/logo.png"]
  * ```
+ * @category Filesystem
  */
 export async function listSourceFiles(): Promise<string[]> {
   return getTauriCore().invoke<string[]>("list_source_files", {});
@@ -253,6 +265,7 @@ export async function listSourceFiles(): Promise<string[]> {
  * if directory doesn't exist.
  *
  * @returns Array of source names (e.g., ["comment", "douban", "matters"])
+ * @category Filesystem
  */
 export async function listSocialFiles(): Promise<string[]> {
   return getTauriCore().invoke<string[]>("list_social_files", {});
@@ -262,7 +275,10 @@ export async function listSocialFiles(): Promise<string[]> {
 // Site operations (heavy I/O in Rust, no JS memory pressure)
 // ============================================================================
 
-/** File path and size from the compiled site directory */
+/**
+ * File path and size from the compiled site directory
+ * @category Filesystem
+ */
 export interface SiteFileInfo {
   path: string;
   size: number;
@@ -272,6 +288,7 @@ export interface SiteFileInfo {
  * List all files in the compiled site directory with their sizes
  *
  * @returns Array of file info objects with path and size in bytes
+ * @category Filesystem
  */
 export async function listSiteFilesWithSizes(): Promise<SiteFileInfo[]> {
   return getTauriCore().invoke<SiteFileInfo[]>("list_site_files_with_sizes", {});

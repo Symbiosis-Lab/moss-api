@@ -20,8 +20,8 @@
  *   });
  *
  *   it("reads files", async () => {
- *     ctx.filesystem.setFile("/project/test.md", "# Hello");
- *     const content = await readFile("/project", "test.md");
+ *     ctx.filesystem.setFile("/test/project/test.md", "# Hello");
+ *     const content = await readFile("test.md");
  *     expect(content).toBe("# Hello");
  *   });
  * });

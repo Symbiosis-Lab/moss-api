@@ -42,6 +42,7 @@ function getTauriEvent(): { listen: TauriEventListen; emit: TauriEventEmit } {
 
 /**
  * Check if Tauri event API is available
+ * @category Events
  */
 export function isEventApiAvailable(): boolean {
   const w = window as unknown as TauriEventWindow;
@@ -62,6 +63,7 @@ export function isEventApiAvailable(): boolean {
  * // From plugin:
  * await emitEvent("deployment-started", { url: "https://github.com/..." });
  * ```
+ * @category Events
  */
 export async function emitEvent(event: string, payload?: unknown): Promise<void> {
   await getTauriEvent().emit(event, payload);
@@ -86,6 +88,7 @@ export async function emitEvent(event: string, payload?: unknown): Promise<void>
  * // Later, to stop listening:
  * unlisten();
  * ```
+ * @category Events
  */
 export async function onEvent<T>(
   event: string,
@@ -116,6 +119,7 @@ export async function onEvent<T>(
  *   console.log("User did not respond in time");
  * }
  * ```
+ * @category Events
  */
 export async function waitForEvent<T>(
   event: string,

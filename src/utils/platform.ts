@@ -13,16 +13,19 @@ import { executeBinary } from "./binary";
 
 /**
  * Supported operating systems
+ * @category Platform
  */
 export type OSType = "darwin" | "linux" | "windows";
 
 /**
  * Supported architectures
+ * @category Platform
  */
 export type ArchType = "arm64" | "x64";
 
 /**
  * Platform key combining OS and architecture
+ * @category Platform
  */
 export type PlatformKey =
   | "darwin-arm64"
@@ -32,6 +35,7 @@ export type PlatformKey =
 
 /**
  * Complete platform information
+ * @category Platform
  */
 export interface PlatformInfo {
   /** Operating system */
@@ -69,6 +73,7 @@ let cachedPlatform: PlatformInfo | null = null;
  * const platform = await getPlatformInfo();
  * console.log(platform.platformKey); // "darwin-arm64"
  * ```
+ * @category Platform
  */
 export async function getPlatformInfo(): Promise<PlatformInfo> {
   // Return cached result if available
@@ -105,6 +110,7 @@ export async function getPlatformInfo(): Promise<PlatformInfo> {
  * Useful for testing or when platform detection needs to be re-run.
  *
  * @internal
+ * @category Platform
  */
 export function clearPlatformCache(): void {
   cachedPlatform = null;

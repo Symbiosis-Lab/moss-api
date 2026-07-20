@@ -37,6 +37,7 @@ import type { DeploymentInfo } from "./context";
  *   return { success: true, deployment: {...} };
  * }
  * ```
+ * @category Hooks
  */
 export interface HookResult {
   /** Whether the operation succeeded */

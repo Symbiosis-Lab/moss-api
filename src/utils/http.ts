@@ -16,6 +16,7 @@ import { getInternalContext } from "./context";
 
 /**
  * Options for HTTP fetch requests
+ * @category HTTP
  */
 export interface FetchOptions {
   /** Timeout in milliseconds (default: 30000) */
@@ -24,6 +25,7 @@ export interface FetchOptions {
 
 /**
  * Result from an HTTP fetch operation
+ * @category HTTP
  */
 export interface FetchResult {
   /** HTTP status code */
@@ -40,6 +42,7 @@ export interface FetchResult {
 
 /**
  * Options for asset download
+ * @category HTTP
  */
 export interface DownloadOptions {
   /** Timeout in milliseconds (default: 30000) */
@@ -48,6 +51,7 @@ export interface DownloadOptions {
 
 /**
  * Result from an asset download operation
+ * @category HTTP
  */
 export interface DownloadResult {
   /** HTTP status code */
@@ -100,6 +104,7 @@ interface TauriDownloadResult {
  *   const data = JSON.parse(result.text());
  * }
  * ```
+ * @category HTTP
  */
 export async function fetchUrl(
   url: string,
@@ -129,6 +134,7 @@ export async function fetchUrl(
 
 /**
  * Options for HTTP POST requests
+ * @category HTTP
  */
 export interface PostOptions {
   /** Timeout in milliseconds (default: 30000) */
@@ -161,18 +167,8 @@ export interface PostOptions {
  *   const data = JSON.parse(result.text());
  * }
  * ```
+ * @category HTTP
  */
-/**
- * Convert an HTML fragment to Markdown via moss's bundled `htmd` converter —
- * the same converter the rest of the app uses. Plugins call this instead of
- * shipping their own HTML→Markdown pass, so output (notably hard breaks, which
- * htmd renders as two trailing spaces rather than a lone backslash) is
- * consistent app-wide. Returns the input HTML unchanged if conversion fails.
- */
-export async function htmlToMarkdown(html: string): Promise<string> {
-  return getTauriCore().invoke<string>("html_to_markdown", { html });
-}
-
 export async function httpPost(
   url: string,
   body: Record<string, unknown>,
@@ -203,7 +199,20 @@ export async function httpPost(
 }
 
 /**
+ * Convert an HTML fragment to Markdown via moss's bundled `htmd` converter —
+ * the same converter the rest of the app uses. Plugins call this instead of
+ * shipping their own HTML→Markdown pass, so output (notably hard breaks, which
+ * htmd renders as two trailing spaces rather than a lone backslash) is
+ * consistent app-wide. Returns the input HTML unchanged if conversion fails.
+ * @category HTTP
+ */
+export async function htmlToMarkdown(html: string): Promise<string> {
+  return getTauriCore().invoke<string>("html_to_markdown", { html });
+}
+
+/**
  * Options for HTTP GET requests
+ * @category HTTP
  */
 export interface GetOptions {
   /** Timeout in milliseconds (default: 30000) */
@@ -234,6 +243,7 @@ export interface GetOptions {
  *   const data = JSON.parse(result.text());
  * }
  * ```
+ * @category HTTP
  */
 export async function httpGet(
   url: string,
@@ -267,6 +277,7 @@ export async function httpGet(
  *
  * Order is preserved because the GraphQL multipart request spec requires
  * `operations` before `map` before the file parts.
+ * @category HTTP
  */
 export interface MultipartTextField {
   /** Form field name (e.g. "operations", "map"). */
@@ -278,6 +289,7 @@ export interface MultipartTextField {
 /**
  * One file part in a multipart/form-data POST. Bytes are passed base64-encoded —
  * e.g. straight from `readSiteFile`, which already returns base64.
+ * @category HTTP
  */
 export interface MultipartFilePart {
   /** Form field name for this file (e.g. "0" per the GraphQL multipart spec). */
@@ -292,6 +304,7 @@ export interface MultipartFilePart {
 
 /**
  * Options for a multipart POST request.
+ * @category HTTP
  */
 export interface MultipartPostOptions {
   /** Timeout in milliseconds (default: 30000) */
@@ -319,6 +332,7 @@ export interface MultipartPostOptions {
  *   files: [{ field: "0", filename: "photo.jpg", contentType: "image/jpeg", contentBase64 }],
  * }, { headers: { "x-access-token": token } });
  * ```
+ * @category HTTP
  */
 export async function httpPostMultipart(
   url: string,
@@ -377,6 +391,7 @@ export async function httpPostMultipart(
  *   console.log(`Saved to ${result.actualPath}`); // e.g., "assets/image.png"
  * }
  * ```
+ * @category HTTP
  */
 export async function downloadAsset(
   url: string,

@@ -11,6 +11,7 @@ import { getTauriCore } from "./tauri";
 
 /**
  * Reason why the browser window was closed
+ * @category Browser
  */
 export type BrowserCloseReason =
   | { type: "user" } // User clicked X or closed window
@@ -19,6 +20,7 @@ export type BrowserCloseReason =
 
 /**
  * Handle returned by openBrowser for tracking window lifecycle
+ * @category Browser
  */
 export interface BrowserHandle {
   /**
@@ -128,6 +130,7 @@ function injectBridgeScript(html: string): string {
  *   console.log("User closed the window without completing");
  * }
  * ```
+ * @category Browser
  */
 export async function openBrowser(url: string): Promise<BrowserHandle> {
   await getTauriCore().invoke("open_action_panel", { url, belowTitlebar: true });
@@ -150,6 +153,7 @@ export async function openBrowser(url: string): Promise<BrowserHandle> {
 
 /**
  * Close the action panel
+ * @category Browser
  */
 export async function closeBrowser(): Promise<void> {
   await getTauriCore().invoke("close_action_panel", {});
@@ -162,6 +166,7 @@ export async function closeBrowser(): Promise<void> {
  *
  * Call this after `promptLogin()` returns false on an import (binding /
  * prompt_login) path so the user isn't left with an empty action panel.
+ * @category Browser
  */
 export async function returnToEditor(): Promise<void> {
   await getTauriCore().invoke("return_to_editor", {});
@@ -179,6 +184,7 @@ export async function returnToEditor(): Promise<void> {
  * // OAuth device flow - user may already be logged in
  * await openSystemBrowser("https://github.com/login/device");
  * ```
+ * @category Browser
  */
 export async function openSystemBrowser(url: string): Promise<void> {
   await getTauriCore().invoke("open_system_browser", { url });
@@ -233,6 +239,7 @@ export async function openSystemBrowser(url: string): Promise<void> {
  *   closeBrowser(); // Explicitly close when done
  * });
  * ```
+ * @category Browser
  */
 export async function openBrowserWithHtml(html: string): Promise<void> {
   const injectedHtml = injectBridgeScript(html);
@@ -320,6 +327,7 @@ export async function openBrowserWithHtml(html: string): Promise<void> {
  *   console.log("User cancelled or timed out");
  * }
  * ```
+ * @category Browser
  */
 export async function showBrowserForm<T>(
   html: string,

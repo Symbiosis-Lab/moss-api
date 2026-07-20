@@ -20,11 +20,13 @@ import { emitEvent } from "./events";
 
 /**
  * Toast variant determines the visual style
+ * @category Toast
  */
 export type ToastVariant = "success" | "error" | "info" | "warning";
 
 /**
  * Action button in a toast
+ * @category Toast
  */
 export interface ToastAction {
   /** Button text, e.g., "View site" */
@@ -58,6 +60,7 @@ export interface ToastAction {
  *   dismissible: false
  * });
  * ```
+ * @category Toast
  */
 export interface ToastOptions {
   /** The message to display (required) */
@@ -84,6 +87,7 @@ export interface ToastOptions {
 
 /**
  * @deprecated Use ToastVariant instead
+ * @category Toast
  */
 export type ToastType = ToastVariant;
 
@@ -91,13 +95,22 @@ export type ToastType = ToastVariant;
 // Event Names
 // =============================================================================
 
-/** Event for showing a new toast */
+/**
+ * Event for showing a new toast
+ * @category Toast
+ */
 export const TOAST_EVENT = "show-toast";
 
-/** Event for updating an existing toast by ID */
+/**
+ * Event for updating an existing toast by ID
+ * @category Toast
+ */
 export const TOAST_UPDATE_EVENT = "show-toast-update";
 
-/** Event for dismissing a toast by ID */
+/**
+ * Event for dismissing a toast by ID
+ * @category Toast
+ */
 export const TOAST_DISMISS_EVENT = "show-toast-dismiss";
 
 // =============================================================================
@@ -122,6 +135,7 @@ export const TOAST_DISMISS_EVENT = "show-toast-dismiss";
  * // Simple form (for quick messages)
  * await showToast("Processing...");
  * ```
+ * @category Toast
  */
 export async function showToast(options: ToastOptions | string): Promise<void> {
   const opts: ToastOptions = typeof options === "string"
@@ -160,6 +174,7 @@ export async function showToast(options: ToastOptions | string): Promise<void> {
  *   duration: 5000
  * });
  * ```
+ * @category Toast
  */
 export async function updateToast(
   id: string,
@@ -185,6 +200,7 @@ export async function updateToast(
  * // Later, dismiss it
  * await dismissToast("process-toast");
  * ```
+ * @category Toast
  */
 export async function dismissToast(id: string): Promise<void> {
   await emitEvent(TOAST_DISMISS_EVENT, { id });

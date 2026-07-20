@@ -17,6 +17,8 @@ import { getInternalContext, hasContext } from "./context";
 
 /**
  * A cookie stored for plugin authentication
+ *
+ * @category Cookies
  */
 export interface Cookie {
   /** Cookie name */
@@ -58,6 +60,7 @@ export interface Cookie {
  *   // Use token for authenticated requests
  * }
  * ```
+ * @category Cookies
  */
 export async function getPluginCookie(): Promise<Cookie[] | null> {
   // Return null if called outside hook context (e.g., after window closed)
@@ -90,6 +93,7 @@ export async function getPluginCookie(): Promise<Cookie[] | null> {
  *   { name: "session", value: "abc123" }
  * ]);
  * ```
+ * @category Cookies
  */
 export async function setPluginCookie(cookies: Cookie[]): Promise<void> {
   const ctx = getInternalContext();
@@ -108,6 +112,8 @@ export async function setPluginCookie(cookies: Cookie[]): Promise<void> {
  *
  * The plugin's identity is auto-detected from the runtime context.
  * **Must be called from within a plugin hook.**
+ *
+ * @category Cookies
  */
 export async function clearPluginCookies(): Promise<void> {
   const ctx = getInternalContext();

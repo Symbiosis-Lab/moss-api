@@ -1,5 +1,6 @@
 /** One comment in the .moss/data/social/*.json shared standard.
- *  See moss/docs/architecture/social-data-standard.md. */
+ *  See moss/docs/architecture/social-data-standard.md.
+ *  @category Social */
 export interface SocialComment {
   id: string;
   source: string;
@@ -16,10 +17,19 @@ export interface SocialComment {
   state?: string;
 }
 
+/**
+ * The social data for a single article — currently its comments.
+ * @category Social
+ */
 export interface SocialArticleData {
   comments: SocialComment[];
 }
 
+/**
+ * A `.moss/data/social/*.json` file: the schema version plus every article's
+ * social data, keyed by article path.
+ * @category Social
+ */
 export interface SocialDataFile {
   schemaVersion: string;
   articles: Record<string, SocialArticleData>;

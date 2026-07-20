@@ -29,6 +29,7 @@ import { getTauriCore, isTauriAvailable } from "./tauri";
  *
  * Plugins should treat the return value as best-effort: a missing value
  * is the production default, not an error.
+ * @category Environment
  */
 export async function getPluginEnvVar(name: string): Promise<string | undefined> {
   if (!isTauriAvailable()) return undefined;

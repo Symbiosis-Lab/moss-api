@@ -12,6 +12,7 @@
 [moss](https://mosspub.com) is a desktop publishing app; this package is its plugin API surface. Use it to write plugins that publish posts, manage site assets, or extend the editor.
 
 - [Quickstart](#quickstart)
+- [API reference](#api-reference)
 - [Stability](#stability)
 - [Discussions](https://github.com/Symbiosis-Lab/moss-api/discussions) · [Issues](https://github.com/Symbiosis-Lab/moss-api/issues) · [moss.pub](https://mosspub.com)
 
@@ -21,12 +22,34 @@
 npm install @symbiosis-lab/moss-api
 ```
 
-```ts
-import { getTauriCore, fetchUrl } from "@symbiosis-lab/moss-api";
+A plugin is an object whose methods are hooks; moss calls them with a typed context:
 
-const html = await fetchUrl("https://example.com");
-console.log(html);
+```ts
+import type { DeployContext, HookResult } from "@symbiosis-lab/moss-api";
+import { reportProgress } from "@symbiosis-lab/moss-api";
+
+export default {
+  async on_deploy(context: DeployContext): Promise<HookResult> {
+    await reportProgress("deploying", 0, 100, "Initializing");
+    // ... deployment logic
+    return { success: true, message: "Deployed successfully" };
+  },
+};
 ```
+
+Test plugins without a running moss app via the mock layer:
+
+```ts
+import { setupMockTauri } from "@symbiosis-lab/moss-api/testing";
+```
+
+## API reference
+
+The full reference — every hook context, utility, and testing mock, generated from the source doc comments — lives in [docs/api](docs/api/README.md).
+
+Topic guides: [plugin authentication](docs/plugin-auth.md).
+
+Regenerate after an API change with `pnpm run docs` (CI flags a reference that has drifted from the source).
 
 ## Stability
 

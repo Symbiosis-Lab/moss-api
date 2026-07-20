@@ -5,18 +5,19 @@
  *
  * @example
  * ```typescript
- * import type { DeployContext, HookResult } from "moss-plugin-sdk";
- * import { log, reportProgress, openBrowser } from "moss-plugin-sdk";
+ * import type { DeployContext, HookResult } from "@symbiosis-lab/moss-api";
+ * import { reportProgress } from "@symbiosis-lab/moss-api";
  *
  * const MyPlugin = {
  *   async on_deploy(context: DeployContext): Promise<HookResult> {
- *     await log("Starting deployment...");
  *     await reportProgress("deploying", 0, 100, "Initializing");
  *     // ... deployment logic
  *     return { success: true, message: "Deployed successfully" };
  *   }
  * };
  * ```
+ *
+ * @packageDocumentation
  */
 
 // Types

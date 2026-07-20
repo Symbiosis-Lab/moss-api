@@ -1,0 +1,13 @@
+{
+  // TypeDoc-only tsconfig. The package's real tsconfig uses NodeNext module
+  // resolution, but the source uses extensionless relative imports that only
+  // tsdown's bundler semantics accept — so docs generation type-checks with
+  // bundler resolution to match what the build actually does.
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "noEmit": true
+  },
+  "exclude": ["src/**/__tests__/**"]
+}

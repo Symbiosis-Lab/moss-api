@@ -35,6 +35,7 @@ import { getInternalContext } from "./context";
  * // Read cached data
  * const cached = await readPluginFile("cache/articles.json");
  * ```
+ * @category Plugin storage
  */
 export async function readPluginFile(relativePath: string): Promise<string> {
   const ctx = getInternalContext();
@@ -64,6 +65,7 @@ export async function readPluginFile(relativePath: string): Promise<string> {
  * // Cache data
  * await writePluginFile("cache/articles.json", JSON.stringify(articles));
  * ```
+ * @category Plugin storage
  */
 export async function writePluginFile(
   relativePath: string,
@@ -92,6 +94,7 @@ export async function writePluginFile(
  * const files = await listPluginFiles();
  * // ["config.json", "cache/articles.json", "cache/images.json"]
  * ```
+ * @category Plugin storage
  */
 export async function listPluginFiles(): Promise<string[]> {
   const ctx = getInternalContext();
@@ -117,6 +120,7 @@ export async function listPluginFiles(): Promise<string[]> {
  *   // Use default config
  * }
  * ```
+ * @category Plugin storage
  */
 export async function pluginFileExists(relativePath: string): Promise<boolean> {
   const ctx = getInternalContext();
