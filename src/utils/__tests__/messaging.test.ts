@@ -460,7 +460,7 @@ describe("Messaging Utilities", () => {
       // The task id is consistent across transitions.
       expect(task.id).toBe("100");
       // Restore impl in case other tests run after.
-      mockInvoke.mockImplementation(originalInvoke);
+      if (originalInvoke) mockInvoke.mockImplementation(originalInvoke);
     });
   });
 

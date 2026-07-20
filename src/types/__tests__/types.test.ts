@@ -207,8 +207,6 @@ describe("Type Definitions", () => {
   describe("GenerateContext with page_tree", () => {
     it("accepts GenerateContext with optional page_tree field", () => {
       const ctx: GenerateContext = {
-        project_path: "/project",
-        moss_dir: "/project/.moss",
         project_info: {
           project_type: "blog",
           content_folders: ["posts"],
@@ -271,29 +269,24 @@ describe("Type Definitions", () => {
 
     it("accepts valid BaseContext", () => {
       const ctx: BaseContext = {
-        project_path: "/path/to/project",
-        moss_dir: "/path/to/project/.moss",
         project_info: baseProjectInfo,
         config: { setting: true },
       };
-      expect(ctx.project_path).toBe("/path/to/project");
-      expect(ctx.moss_dir).toBe("/path/to/project/.moss");
+      expect(ctx.project_info).toBe(baseProjectInfo);
+      expect(ctx.config).toEqual({ setting: true });
     });
 
     it("accepts ProcessContext (extends BaseContext)", () => {
       const ctx: ProcessContext = {
-        project_path: "/project",
-        moss_dir: "/project/.moss",
         project_info: baseProjectInfo,
         config: {},
       };
-      expect(ctx.project_path).toBe("/project");
+      expect(ctx.project_info.project_type).toBe("blog");
+      expect(ctx.trigger).toBeUndefined();
     });
 
     it("accepts GenerateContext with source_files", () => {
       const ctx: GenerateContext = {
-        project_path: "/project",
-        moss_dir: "/project/.moss",
         project_info: baseProjectInfo,
         config: {},
         source_files: {
@@ -306,37 +299,27 @@ describe("Type Definitions", () => {
       expect(ctx.source_files.markdown).toHaveLength(2);
     });
 
-    it("accepts DeployContext with output_dir and site_files", () => {
+    it("accepts DeployContext with site_files", () => {
       const ctx: DeployContext = {
-        project_path: "/project",
-        moss_dir: "/project/.moss",
         project_info: baseProjectInfo,
         config: {},
-        output_dir: "/project/.moss/build/site",
         site_files: ["index.html", "post1.html"],
       };
-      expect(ctx.output_dir).toBe("/project/.moss/build/site");
       expect(ctx.site_files).toHaveLength(2);
     });
 
     it("accepts DeployContext with optional domain", () => {
       const ctxWithDomain: DeployContext = {
-        project_path: "/project",
-        moss_dir: "/project/.moss",
         project_info: baseProjectInfo,
         config: {},
-        output_dir: "/project/.moss/build/site",
         site_files: ["index.html"],
         domain: "example.com",
       };
       expect(ctxWithDomain.domain).toBe("example.com");
 
       const ctxWithoutDomain: DeployContext = {
-        project_path: "/project",
-        moss_dir: "/project/.moss",
         project_info: baseProjectInfo,
         config: {},
-        output_dir: "/project/.moss/build/site",
         site_files: ["index.html"],
       };
       expect(ctxWithoutDomain.domain).toBeUndefined();
@@ -344,11 +327,8 @@ describe("Type Definitions", () => {
 
     it("accepts SyndicateContext with articles and optional deployment", () => {
       const ctx: SyndicateContext = {
-        project_path: "/project",
-        moss_dir: "/project/.moss",
         project_info: baseProjectInfo,
         config: {},
-        output_dir: "/project/.moss/build/site",
         site_files: ["index.html"],
         articles: [
           {
@@ -521,6 +501,7 @@ describe("Type Definitions", () => {
     it("correctly discriminates CompleteMessage", () => {
       const msg: PluginMessage = {
         type: "complete",
+        success: true,
         result: { data: "done" },
       };
       expect(msg.type).toBe("complete");
@@ -562,12 +543,12 @@ describe("Type Definitions", () => {
 
     it("CompleteMessage accepts any result type", () => {
       const messages: CompleteMessage[] = [
-        { type: "complete", result: null },
-        { type: "complete", result: undefined },
-        { type: "complete", result: 42 },
-        { type: "complete", result: "string" },
-        { type: "complete", result: { nested: { deep: true } } },
-        { type: "complete", result: [1, 2, 3] },
+        { type: "complete", success: true, result: null },
+        { type: "complete", success: true, result: undefined },
+        { type: "complete", success: true, result: 42 },
+        { type: "complete", success: true, result: "string" },
+        { type: "complete", success: true, result: { nested: { deep: true } } },
+        { type: "complete", success: true, result: [1, 2, 3] },
       ];
       expect(messages).toHaveLength(6);
     });

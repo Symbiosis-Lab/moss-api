@@ -3,6 +3,7 @@
   "plugin": ["typedoc-plugin-markdown"],
   "entryPoints": ["src/index.ts", "src/testing/index.ts"],
   "tsconfig": "tsconfig.json",
+  "exclude": ["**/__tests__/**"],
   "out": "docs/api",
   "readme": "none",
   "cleanOutputDir": true,
