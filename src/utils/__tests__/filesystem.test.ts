@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
-import { readFile, writeFile, listFiles, fileExists } from "../filesystem";
+import { readFile, writeFile, listFiles, fileExists } from "../filesystem.js";
 
 describe("Filesystem Utilities", () => {
   const originalWindow = globalThis.window;

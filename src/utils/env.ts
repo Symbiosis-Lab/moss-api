@@ -17,7 +17,7 @@
  * New entries require an explicit Rust-side edit + code review.
  */
 
-import { getTauriCore, isTauriAvailable } from "./tauri";
+import { getTauriCore, isTauriAvailable } from "./tauri.js";
 
 /**
  * Read a host environment variable into the plugin webview.

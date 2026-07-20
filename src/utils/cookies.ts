@@ -8,8 +8,8 @@
  * (defined in manifest.json) - plugins cannot access other plugins' cookies.
  */
 
-import { getTauriCore } from "./tauri";
-import { getInternalContext, hasContext } from "./context";
+import { getTauriCore } from "./tauri.js";
+import { getInternalContext, hasContext } from "./context.js";
 
 // ============================================================================
 // Types

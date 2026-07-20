@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
-import { fetchUrl, downloadAsset } from "../http";
+import { fetchUrl, downloadAsset } from "../http.js";
 
 describe("HTTP Utilities", () => {
   const originalWindow = globalThis.window;

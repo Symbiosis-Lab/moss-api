@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
-import { executeBinary } from "../binary";
+import { executeBinary } from "../binary.js";
 
 describe("Binary Execution Utilities", () => {
   const originalWindow = globalThis.window;

@@ -7,9 +7,9 @@
  * which automatically resolve paths from the internal context.
  */
 
-import type { ProjectInfo } from "./plugin";
+import type { ProjectInfo } from "./plugin.js";
 // `import type` is erased at compile time, so this does not create a runtime cycle.
-import type { TriggerContext } from "../utils/messaging";
+import type { TriggerContext } from "../utils/messaging.js";
 
 /**
  * Base context shared by all hooks

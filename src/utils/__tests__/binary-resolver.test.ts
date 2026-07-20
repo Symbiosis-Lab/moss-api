@@ -4,7 +4,7 @@ import {
   BinaryResolutionError,
   type BinaryConfig,
   type BinaryResolution,
-} from "../binary-resolver";
+} from "../binary-resolver.js";
 
 // Use vi.hoisted so mocks are available when vi.mock factories run
 const { mockInvoke, mockListen, mockUnlisten } = vi.hoisted(() => ({

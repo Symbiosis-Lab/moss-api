@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
-import { getPlatformInfo, clearPlatformCache } from "../platform";
+import { getPlatformInfo, clearPlatformCache } from "../platform.js";
 
 describe("Platform Detection Utilities", () => {
   const originalWindow = globalThis.window;

@@ -8,9 +8,9 @@
  * (always the project root).
  */
 
-import { getTauriCore } from "./tauri";
-import { getInternalContext } from "./context";
-import { onEvent } from "./events";
+import { getTauriCore } from "./tauri.js";
+import { getInternalContext } from "./context.js";
+import { onEvent } from "./events.js";
 
 // ============================================================================
 // Types

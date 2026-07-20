@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
-import { getPluginCookie, setPluginCookie, clearPluginCookies } from "../cookies";
+import { getPluginCookie, setPluginCookie, clearPluginCookies } from "../cookies.js";
 
 describe("Cookie Utilities", () => {
   const originalWindow = globalThis.window;

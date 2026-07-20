@@ -12,7 +12,7 @@
  * 4. **Separation of Concerns**: Toast (UX) is separate from HookResult (flow control)
  */
 
-import { emitEvent } from "./events";
+import { emitEvent } from "./events.js";
 
 // =============================================================================
 // Types

@@ -5,7 +5,7 @@ import {
   openBrowserWithHtml,
   showBrowserForm,
   BrowserHandle,
-} from "../browser";
+} from "../browser.js";
 
 describe("Browser Utilities", () => {
   const originalWindow = globalThis.window;

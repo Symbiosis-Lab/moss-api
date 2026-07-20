@@ -8,7 +8,7 @@ import {
   reportComplete,
   startTask,
   type AdvisoryProposal,
-} from "../messaging";
+} from "../messaging.js";
 
 describe("Messaging Utilities", () => {
   const originalWindow = globalThis.window;

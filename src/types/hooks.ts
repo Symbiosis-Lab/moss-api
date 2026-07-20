@@ -13,7 +13,7 @@
  * of completion signaling.
  */
 
-import type { DeploymentInfo } from "./context";
+import type { DeploymentInfo } from "./context.js";
 
 /**
  * Standard result returned from hook execution

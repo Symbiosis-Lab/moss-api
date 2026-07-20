@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
-import { getInternalContext, hasContext } from "../context";
+import { getInternalContext, hasContext } from "../context.js";
 
 describe("Context Utilities", () => {
   const originalWindow = globalThis.window;

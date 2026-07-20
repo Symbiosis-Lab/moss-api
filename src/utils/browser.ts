@@ -3,7 +3,7 @@
  * Abstracts Tauri browser commands to decouple plugins from internal APIs
  */
 
-import { getTauriCore } from "./tauri";
+import { getTauriCore } from "./tauri.js";
 
 // ============================================================================
 // Types

@@ -62,4 +62,4 @@ export {
   type MockBrowserTracker,
   type MockDialogTracker,
   type MockDialogResult,
-} from "./mock-tauri";
+} from "./mock-tauri.js";

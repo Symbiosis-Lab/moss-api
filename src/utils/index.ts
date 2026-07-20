@@ -7,10 +7,10 @@ export {
   getTauriCore,
   isTauriAvailable,
   type TauriCore,
-} from "./tauri";
+} from "./tauri.js";
 
 // Plugin-side env-var access (allow-listed via Rust)
-export { getPluginEnvVar } from "./env";
+export { getPluginEnvVar } from "./env.js";
 
 // Messaging
 export {
@@ -35,7 +35,7 @@ export {
   type AdvisorySeverity,
   type AdvisoryAppOp,
   type AdvisoryAction,
-} from "./messaging";
+} from "./messaging.js";
 
 // Browser
 export {
@@ -47,7 +47,7 @@ export {
   showBrowserForm,
   type BrowserHandle,
   type BrowserCloseReason,
-} from "./browser";
+} from "./browser.js";
 
 // File System (project files)
 export {
@@ -64,7 +64,7 @@ export {
   listSiteFilesWithSizes,
   type ProjectFileEntry,
   type SiteFileInfo,
-} from "./filesystem";
+} from "./filesystem.js";
 
 // Plugin Storage (plugin's private directory)
 export {
@@ -72,7 +72,7 @@ export {
   writePluginFile,
   listPluginFiles,
   pluginFileExists,
-} from "./plugin-storage";
+} from "./plugin-storage.js";
 
 // HTTP
 export {
@@ -91,14 +91,14 @@ export {
   type MultipartPostOptions,
   type DownloadOptions,
   type DownloadResult,
-} from "./http";
+} from "./http.js";
 
 // Binary Execution
 export {
   executeBinary,
   type ExecuteOptions,
   type ExecuteResult,
-} from "./binary";
+} from "./binary.js";
 
 // Platform Detection
 export {
@@ -108,7 +108,7 @@ export {
   type ArchType,
   type PlatformKey,
   type PlatformInfo,
-} from "./platform";
+} from "./platform.js";
 
 // Binary Resolution (auto-download external tools)
 export {
@@ -123,7 +123,7 @@ export {
   type ArchiveLayout,
   type VersionCheck,
   type ResolutionSource,
-} from "./binary-resolver";
+} from "./binary-resolver.js";
 
 // Cookie Management
 export {
@@ -131,7 +131,7 @@ export {
   setPluginCookie,
   clearPluginCookies,
   type Cookie,
-} from "./cookies";
+} from "./cookies.js";
 
 // Event Communication
 export {
@@ -139,7 +139,7 @@ export {
   onEvent,
   waitForEvent,
   isEventApiAvailable,
-} from "./events";
+} from "./events.js";
 
 // Toast Notifications
 export {
@@ -153,4 +153,4 @@ export {
   type ToastAction,
   type ToastOptions,
   type ToastType, // deprecated
-} from "./toast";
+} from "./toast.js";

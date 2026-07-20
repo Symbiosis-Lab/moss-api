@@ -7,8 +7,8 @@
  * For plugin's private storage, use the plugin-storage API instead.
  */
 
-import { getTauriCore } from "./tauri";
-import { getInternalContext } from "./context";
+import { getTauriCore } from "./tauri.js";
+import { getInternalContext } from "./context.js";
 
 // ============================================================================
 // Functions

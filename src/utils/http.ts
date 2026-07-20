@@ -7,8 +7,8 @@
  * Project path for downloads is auto-detected from the runtime context.
  */
 
-import { getTauriCore } from "./tauri";
-import { getInternalContext } from "./context";
+import { getTauriCore } from "./tauri.js";
+import { getInternalContext } from "./context.js";
 
 // ============================================================================
 // Types

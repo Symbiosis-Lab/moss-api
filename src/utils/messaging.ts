@@ -6,9 +6,9 @@
  * complete/error messages that require acknowledgment.
  */
 
-import type { PluginMessage } from "../types/messages";
-import { getTauriCore, isTauriAvailable } from "./tauri";
-import { emitEvent, isEventApiAvailable } from "./events";
+import type { PluginMessage } from "../types/messages.js";
+import { getTauriCore, isTauriAvailable } from "./tauri.js";
+import { emitEvent, isEventApiAvailable } from "./events.js";
 
 let currentPluginName = "";
 let currentHookName = "";

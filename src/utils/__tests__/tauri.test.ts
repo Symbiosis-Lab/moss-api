@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
-import { getTauriCore, isTauriAvailable } from "../tauri";
+import { getTauriCore, isTauriAvailable } from "../tauri.js";
 
 describe("Tauri Utilities", () => {
   const originalWindow = globalThis.window;

@@ -5,7 +5,7 @@
  * platform-specific binary downloads and operations.
  */
 
-import { executeBinary } from "./binary";
+import { executeBinary } from "./binary.js";
 
 // ============================================================================
 // Types

@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import * as utils from "../index";
+import * as utils from "../index.js";
 
 describe("Utils Exports", () => {
   it("should not export deprecated logger functions", () => {

@@ -4,7 +4,7 @@ import {
   writePluginFile,
   listPluginFiles,
   pluginFileExists,
-} from "../plugin-storage";
+} from "../plugin-storage.js";
 
 describe("Plugin Storage Utilities", () => {
   const originalWindow = globalThis.window;

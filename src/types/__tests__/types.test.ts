@@ -18,7 +18,7 @@ import type {
   ErrorMessage,
   CompleteMessage,
   PageNode,
-} from "../../index";
+} from "../../index.js";
 
 describe("Type Definitions", () => {
   describe("ProjectInfo", () => {
