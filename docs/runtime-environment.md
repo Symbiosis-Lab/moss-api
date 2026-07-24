@@ -39,12 +39,10 @@ pure-computation libraries, or do the work through an SDK function where moss's
 Rust side already provides it.
 
 One thing the missing `crypto.subtle` does *not* cost you is signing. moss
-holds the project identity key and signs on request — see
-`getIdentityPublicKey(purpose, scheme)` and
-`identitySign(purpose, scheme, payload)` in `@symbiosis-lab/moss-api`, gated
-behind `requires: ["identity_sign"]` in your manifest (undeclared, the host
-refuses the call). The key never crosses into the sandbox. The plugin guide
-covers which purposes and schemes are on offer.
+holds keys and signs on request — your plugin gets its own keys from the
+keystore (`getKey`, `signWithKey` in `@symbiosis-lab/moss-api`) and never
+receives private bytes. The keys are scoped to your plugin automatically and
+need no manifest declaration. The plugin guide covers the keystore.
 
 ## fetch limitations
 
