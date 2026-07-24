@@ -38,6 +38,14 @@ Before adding a dependency, search its code for the globals above; prefer
 pure-computation libraries, or do the work through an SDK function where moss's
 Rust side already provides it.
 
+One thing the missing `crypto.subtle` does *not* cost you is signing. moss
+holds the project identity key and signs on request — see
+`getIdentityPublicKey(purpose, scheme)` and
+`identitySign(purpose, scheme, payload)` in `@symbiosis-lab/moss-api`, gated
+behind `requires: ["identity_sign"]` in your manifest (undeclared, the host
+refuses the call). The key never crosses into the sandbox. The plugin guide
+covers which purposes and schemes are on offer.
+
 ## fetch limitations
 
 The built-in `fetch(url, init?)` is a minimal shim over moss's Rust HTTP
@@ -108,32 +116,37 @@ your manifest's `config_schema` (moss auto-renders them in Settings) and read
 them from `context.config` in your hooks, or persist runtime state to
 `config.json` with `writePluginFile()`.
 
-## Config: two files, one merge
+## Config: three sources, one merge
 
-`context.config` in hook contexts is the merge of two files in your plugin's
-folder (`.moss/plugins/<name>/`), written by different actors:
+`context.config` in hook contexts is the merge of the defaults you declare in
+your manifest with two files in your plugin's folder
+(`.moss/plugins/<name>/`), written by different actors:
 
+- `config` in your manifest — the defaults you ship with the plugin.
 - `config.toml` — the settings-UI fields declared in your manifest's
   `config_schema`, written when the user saves Settings.
 - `config.json` — whatever your plugin writes itself via
   `writePluginFile("config.json", …)` (login binding, sync bookkeeping, …),
   written at any time.
 
-Both are merged into `context.config`; on a key conflict **`config.json`
-wins** (it is the more specific, more recently written source).
+On a key conflict the precedence is **`config.json` > `config.toml` >
+manifest defaults** — the more specific, more recently written source wins. A
+field the user never touched in Settings still reaches your hook with its
+declared default, so a plugin driven from the CLI against a fresh project sees
+the same config the app does. An explicitly persisted value always beats a
+default, including a falsy one: a `false` the user saved is never resurrected
+to a `true` default.
 
-**Current caveat:** default values declared in your manifest's `config` field
-are *not* merged into `context.config` — a field the user never touched in
-Settings is simply absent. Until that changes, apply your own defaults in
-code:
+Defaults are overlaid when the hook runs — they are never written to disk, so
+don't expect to find them by reading `config.toml` or `config.json` yourself.
+
+Applying your own defaults in code is still worth doing; it keeps your plugin
+correct on moss versions older than this merge:
 
 ```ts
 const DEFAULTS = { gateway: "https://example.com", retries: 3 };
 const config = { ...DEFAULTS, ...context.config };
 ```
-
-This is good practice regardless: it keeps your plugin correct on older moss
-versions.
 
 ## Testing caveat: mocks run in Node
 

@@ -15,7 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Topic guide [`docs/runtime-environment.md`](docs/runtime-environment.md) — the QuickJS plugin-runtime contract: available globals (and the missing ones: Web Streams, `crypto.subtle`, DOM), `fetch` shim limits, path-preserving multipart uploads, console→log-level mapping, the env-var allowlist, config merge precedence (including the manifest-defaults caveat and its in-plugin workaround), and why green Node-mock tests don't prove QuickJS compatibility.
+- Topic guide [`docs/runtime-environment.md`](docs/runtime-environment.md) — the QuickJS plugin-runtime contract: available globals (and the missing ones: Web Streams, `crypto.subtle`, DOM), `fetch` shim limits, path-preserving multipart uploads, console→log-level mapping, the env-var allowlist, config merge precedence (`config.json` > `config.toml` > manifest defaults), where to reach for host-side signing instead of WebCrypto, and why green Node-mock tests don't prove QuickJS compatibility.
 
 - Generated API reference at [`docs/api/`](docs/api/README.md) — every exported function, type, and interface, built from source doc comments with TypeDoc. Regenerate with `pnpm run docs`; CI flags a reference that has drifted from the source.
 - `createMockDialogTracker`, `MockDialogTracker`, and `MockDialogResult` are now exported from `@symbiosis-lab/moss-api/testing`. They were always reachable via `MockTauriContext.dialogTracker` but could not be imported directly, unlike every other mock tracker.
