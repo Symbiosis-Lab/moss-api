@@ -1,5 +1,5 @@
 /** One comment in the .moss/data/social/*.json shared standard.
- *  See moss/docs/architecture/social-data-standard.md.
+ *  See moss/docs/reference/social-data-standard.md.
  *  @category Social */
 export interface SocialComment {
   id: string;
