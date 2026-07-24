@@ -66,13 +66,6 @@ export {
   type SiteFileInfo,
 } from "./filesystem.js";
 
-// Identity signing (gated: manifest must declare `identity_sign`)
-export {
-  getIdentityPublicKey,
-  identitySign,
-  type SigningScheme,
-} from "./identity.js";
-
 // Plugin Storage (plugin's private directory)
 export {
   readPluginFile,
