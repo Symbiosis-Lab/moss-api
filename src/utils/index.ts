@@ -66,6 +66,15 @@ export {
   type SiteFileInfo,
 } from "./filesystem.js";
 
+// Keys (keystore — scoped to your plugin, no permission needed)
+export {
+  getKey,
+  listKeys,
+  signWithKey,
+  type KeyAlgorithm,
+  type KeyInfo,
+} from "./keystore.js";
+
 // Plugin Storage (plugin's private directory)
 export {
   readPluginFile,
