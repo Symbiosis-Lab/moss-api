@@ -1,6 +1,6 @@
 # The plugin runtime environment
 
-moss plugins do **not** run in a browser. Since moss 0.7.21 the default plugin
+moss plugins do **not** run in a browser. Since moss 0.7.9 the default plugin
 engine is QuickJS (quickjs-ng, embedded in the moss binary) — a pure ECMAScript
 engine with no DOM and no web platform APIs beyond the small set moss installs.
 Code that works in your bundler's dev server, in vitest, or in a webview can
@@ -137,11 +137,17 @@ the same config the app does. An explicitly persisted value always beats a
 default, including a falsy one: a `false` the user saved is never resurrected
 to a `true` default.
 
-Defaults are overlaid when the hook runs — they are never written to disk, so
-don't expect to find them by reading `config.toml` or `config.json` yourself.
+The overlay happens in memory as the hook runs and persists nothing by itself
+— but that does not mean a default can never be on disk. The Settings form
+shows the merged values, and saving any field there writes *every*
+`config_schema` field back to `config.toml`, untouched defaults included; from
+then on those are ordinary persisted values that no longer track your
+manifest, so changing a default in a later version of your plugin won't reach
+that project. Either way, don't reconstruct effective config by reading
+`config.toml` or `config.json` yourself — read `context.config`.
 
 Applying your own defaults in code is still worth doing; it keeps your plugin
-correct on moss versions older than this merge:
+correct on moss versions before 0.7.22:
 
 ```ts
 const DEFAULTS = { gateway: "https://example.com", retries: 3 };
@@ -160,8 +166,12 @@ incompatibilities — and exercise the plugin once in a real moss.
 
 ## Escape hatch
 
-`MOSS_PLUGIN_ENGINE=webview` forces the previous webview-based engine
-(plugins whose manifest declares the `enhance` capability still route through
-it automatically). This is a debugging aid, not a target: the webview engine
-is on its way out, and new plugins should be written against the QuickJS
-environment described here.
+`MOSS_PLUGIN_ENGINE=webview` forces the previous webview-based engine, and moss
+falls back to it on its own: if **any** plugin discovered in the project
+declares the `enhance` capability, the whole manager switches, so every plugin
+in that project runs under the legacy engine — yours included, even though your
+manifest doesn't declare `enhance`. Your own manifest therefore doesn't
+guarantee you the QuickJS environment; a plugin the user installed alongside
+yours can move you off it. Either way the webview engine is a debugging aid on
+its way out, and new plugins should be written against the QuickJS environment
+described here.
