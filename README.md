@@ -47,7 +47,7 @@ import { setupMockTauri } from "@symbiosis-lab/moss-api/testing";
 
 The full reference — every hook context, utility, and testing mock, generated from the source doc comments — lives in [docs/api](docs/api/README.md).
 
-Topic guides: [plugin authentication](docs/plugin-auth.md).
+Topic guides: [the plugin runtime environment](docs/runtime-environment.md) (what globals exist under QuickJS, fetch limits, config merge rules — read this first), [plugin authentication](docs/plugin-auth.md).
 
 Regenerate after an API change with `pnpm run docs` (CI flags a reference that has drifted from the source).
 

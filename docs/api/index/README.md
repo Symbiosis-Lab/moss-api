@@ -2023,7 +2023,7 @@ Content declaration for a single slot.
 | Interface | Description |
 | ------ | ------ |
 | [SocialArticleData](interfaces/SocialArticleData.md) | The social data for a single article — currently its comments. |
-| [SocialComment](interfaces/SocialComment.md) | One comment in the .moss/data/social/*.json shared standard. See moss/docs/architecture/social-data-standard.md. |
+| [SocialComment](interfaces/SocialComment.md) | One comment in the .moss/data/social/*.json shared standard. See moss/docs/reference/social-data-standard.md. |
 | [SocialDataFile](interfaces/SocialDataFile.md) | A `.moss/data/social/*.json` file: the schema version plus every article's social data, keyed by article path. |
 
 ## Tauri core (deprecated)
