@@ -2026,6 +2026,86 @@ Content declaration for a single slot.
 | [SocialComment](interfaces/SocialComment.md) | One comment in the .moss/data/social/*.json shared standard. See moss/docs/reference/social-data-standard.md. |
 | [SocialDataFile](interfaces/SocialDataFile.md) | A `.moss/data/social/*.json` file: the schema version plus every article's social data, keyed by article path. |
 
+## Keys
+
+### KeyAlgorithm
+
+```ts
+type KeyAlgorithm = "ed25519" | "secp256k1-schnorr";
+```
+
+A signing algorithm for a key.
+
+- `ed25519` — EdDSA. Signature: raw 64 bytes. Public key: 32 bytes. The right
+  choice for IPNS (its `MUST` key type) and most new protocols.
+- `secp256k1-schnorr` — BIP-340. Signature: 64 bytes. Public key: x-only 32
+  bytes. For Nostr-family protocols.
+
+***
+
+### getKey()
+
+```ts
+function getKey(name, algorithm): Promise<KeyInfo>;
+```
+
+Get your key named `name`, creating it with `algorithm` the first time.
+
+Idempotent: calling again with the same name returns the same key. The
+algorithm is fixed when the key is created — asking for an existing key with a
+different algorithm is an error.
+
+#### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `name` | `string` |
+| `algorithm` | [`KeyAlgorithm`](#keyalgorithm) |
+
+#### Returns
+
+`Promise`\<[`KeyInfo`](interfaces/KeyInfo.md)\>
+
+***
+
+### listKeys()
+
+```ts
+function listKeys(): Promise<KeyInfo[]>;
+```
+
+List your keys.
+
+#### Returns
+
+`Promise`\<[`KeyInfo`](interfaces/KeyInfo.md)[]\>
+
+***
+
+### signWithKey()
+
+```ts
+function signWithKey(name, payload): Promise<Uint8Array<ArrayBufferLike>>;
+```
+
+Sign `payload` with your key named `name`.
+
+The bytes are yours to construct — moss signs exactly what you give it. The
+signature is in the key algorithm's standard form (ed25519: raw 64 bytes;
+secp256k1-schnorr: BIP-340). Any protocol framing (an IPNS record's
+`ipns-signature:` prefix, a Nostr event id) is yours to build before signing.
+
+#### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `name` | `string` |
+| `payload` | `Uint8Array` |
+
+#### Returns
+
+`Promise`\<`Uint8Array`\<`ArrayBufferLike`\>\>
+
 ## Tauri core (deprecated)
 
 ### ~~getTauriCore()~~
