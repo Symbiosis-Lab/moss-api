@@ -145,43 +145,6 @@ export async function showToast(options: ToastOptions | string): Promise<void> {
   await emitEvent(TOAST_EVENT, opts);
 }
 
-/**
- * Update an existing toast by ID
- *
- * Only works for toasts that were created with an `id` option.
- *
- * @param id - The toast ID to update
- * @param options - Partial options to update (message, variant, etc.)
- *
- * @example
- * ```typescript
- * // Show progress toast
- * await showToast({
- *   message: "Deploying...",
- *   variant: "info",
- *   id: "deploy-progress",
- *   persistent: true
- * });
- *
- * // Update progress
- * await updateToast("deploy-progress", { message: "Pushing to remote..." });
- *
- * // Update to success
- * await updateToast("deploy-progress", {
- *   message: "Deployed!",
- *   variant: "success",
- *   persistent: false,
- *   duration: 5000
- * });
- * ```
- * @category Toast
- */
-export async function updateToast(
-  id: string,
-  options: Partial<Omit<ToastOptions, "id">>
-): Promise<void> {
-  await emitEvent(TOAST_UPDATE_EVENT, { id, ...options });
-}
 
 /**
  * Dismiss a toast by ID

@@ -153,36 +153,6 @@ export async function fileExists(relativePath: string): Promise<boolean> {
   }
 }
 
-/**
- * Create a symbolic link in the project directory
- *
- * Creates a symlink that points from linkPath to targetPath.
- * Both paths are relative to the project root.
- * Creates parent directories if they don't exist.
- *
- * @param targetPath - Path to the original file (relative to project root)
- * @param linkPath - Path where the symlink will be created (relative to project root)
- * @throws Error if symlink cannot be created or called outside a hook
- *
- * @example
- * ```typescript
- * // Create a symlink from runtime/content/post.md -> 文章/post.md
- * await createSymlink("文章/post.md", ".moss/.runtime/hugo/content/posts/post.md");
- * ```
- * @category Filesystem
- */
-export async function createSymlink(
-  targetPath: string,
-  linkPath: string
-): Promise<void> {
-  const ctx = getInternalContext();
-
-  await getTauriCore().invoke("create_project_symlink", {
-    projectPath: ctx.project_path,
-    targetPath,
-    linkPath,
-  });
-}
 
 // ============================================================================
 // Deploy-oriented file access (base64, no path exposure)
@@ -209,67 +179,12 @@ export async function readSiteFile(relativePath: string): Promise<string> {
   return getTauriCore().invoke<string>("read_site_file", { relativePath });
 }
 
-/**
- * Read a file from the project root as base64
- *
- * Returns base64-encoded content. Used by deploy plugins for
- * source file backup operations.
- *
- * @param relativePath - Path relative to the project root
- * @returns Base64-encoded file content
- * @throws Error if file cannot be read
- *
- * @example
- * ```typescript
- * const base64Content = await readProjectFileBase64("posts/article.md");
- * ```
- * @category Filesystem
- */
-export async function readProjectFileBase64(
-  relativePath: string
-): Promise<string> {
-  return getTauriCore().invoke<string>("read_project_file_base64", {
-    relativePath,
-  });
-}
 
-/**
- * List source files in the project directory
- *
- * Returns relative paths of non-hidden files, excluding build artifacts
- * (.moss/, .git/, node_modules/). Used by deploy plugins for source backup.
- *
- * @returns Array of relative file paths
- * @throws Error if listing fails
- *
- * @example
- * ```typescript
- * const sourceFiles = await listSourceFiles();
- * // ["index.md", "posts/hello.md", "assets/logo.png"]
- * ```
- * @category Filesystem
- */
-export async function listSourceFiles(): Promise<string[]> {
-  return getTauriCore().invoke<string[]>("list_source_files", {});
-}
 
 // ============================================================================
 // Social data discovery
 // ============================================================================
 
-/**
- * List social data source names from .moss/data/social/*.json
- *
- * Returns file stems (without .json extension) for all JSON files
- * in the project's .moss/data/social/ directory. Returns empty array
- * if directory doesn't exist.
- *
- * @returns Array of source names (e.g., ["comment", "douban", "matters"])
- * @category Filesystem
- */
-export async function listSocialFiles(): Promise<string[]> {
-  return getTauriCore().invoke<string[]>("list_social_files", {});
-}
 
 // ============================================================================
 // Site operations (heavy I/O in Rust, no JS memory pressure)

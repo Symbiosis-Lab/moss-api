@@ -81,29 +81,6 @@ export async function writePluginFile(
   });
 }
 
-/**
- * List all files in the plugin's private storage directory
- *
- * Returns file paths relative to the plugin's storage directory.
- *
- * @returns Array of relative file paths
- * @throws Error if directory cannot be listed or called outside a hook
- *
- * @example
- * ```typescript
- * const files = await listPluginFiles();
- * // ["config.json", "cache/articles.json", "cache/images.json"]
- * ```
- * @category Plugin storage
- */
-export async function listPluginFiles(): Promise<string[]> {
-  const ctx = getInternalContext();
-
-  return getTauriCore().invoke<string[]>("list_plugin_files", {
-    pluginName: ctx.plugin_name,
-    projectPath: ctx.project_path,
-  });
-}
 
 /**
  * Check if a file exists in the plugin's private storage directory

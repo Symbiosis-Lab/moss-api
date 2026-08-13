@@ -2,7 +2,6 @@ import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import {
   readPluginFile,
   writePluginFile,
-  listPluginFiles,
   pluginFileExists,
 } from "../plugin-storage.js";
 
@@ -115,42 +114,6 @@ describe("Plugin Storage Utilities", () => {
       await expect(writePluginFile("file.json", "{}")).rejects.toThrow(
         "Permission denied"
       );
-    });
-  });
-
-  describe("listPluginFiles", () => {
-    it("lists files in plugin directory", async () => {
-      mockInvoke.mockResolvedValue(["config.json", "cache/articles.json"]);
-
-      const files = await listPluginFiles();
-
-      expect(mockInvoke).toHaveBeenCalledWith("list_plugin_files", {
-        pluginName: "matters",
-        projectPath: "/my/project",
-      });
-      expect(files).toEqual(["config.json", "cache/articles.json"]);
-    });
-
-    it("returns empty array when no files exist", async () => {
-      mockInvoke.mockResolvedValue([]);
-
-      const files = await listPluginFiles();
-
-      expect(files).toEqual([]);
-    });
-
-    it("throws when called outside hook context", async () => {
-      delete mockWindow.__MOSS_INTERNAL_CONTEXT__;
-
-      await expect(listPluginFiles()).rejects.toThrow(
-        /must be called from within a plugin hook/
-      );
-    });
-
-    it("propagates errors from Tauri", async () => {
-      mockInvoke.mockRejectedValue(new Error("Directory not found"));
-
-      await expect(listPluginFiles()).rejects.toThrow("Directory not found");
     });
   });
 

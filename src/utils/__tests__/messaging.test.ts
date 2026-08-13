@@ -1,11 +1,9 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import {
   setMessageContext,
-  getMessageContext,
   sendMessage,
   reportProgress,
   reportError,
-  reportComplete,
   startTask,
   type AdvisoryProposal,
 } from "../messaging.js";
@@ -30,29 +28,6 @@ describe("Messaging Utilities", () => {
 
   afterEach(() => {
     (globalThis as unknown as { window: unknown }).window = originalWindow;
-  });
-
-  describe("setMessageContext / getMessageContext", () => {
-    it("stores and retrieves plugin context", () => {
-      setMessageContext("my-plugin", "on_deploy");
-      const ctx = getMessageContext();
-      expect(ctx.pluginName).toBe("my-plugin");
-      expect(ctx.hookName).toBe("on_deploy");
-    });
-
-    it("overwrites previous context", () => {
-      setMessageContext("first-plugin", "hook1");
-      setMessageContext("second-plugin", "hook2");
-      const ctx = getMessageContext();
-      expect(ctx.pluginName).toBe("second-plugin");
-      expect(ctx.hookName).toBe("hook2");
-    });
-
-    it("returns empty strings for unset context", () => {
-      const ctx = getMessageContext();
-      expect(ctx.pluginName).toBe("");
-      expect(ctx.hookName).toBe("");
-    });
   });
 
   describe("sendMessage", () => {
@@ -183,56 +158,6 @@ describe("Messaging Utilities", () => {
           error: "Error without context",
           context: undefined,
           fatal: false,
-        },
-      });
-    });
-  });
-
-  describe("reportComplete", () => {
-    it("sends complete message with success and result via command", async () => {
-      setMessageContext("plugin", "hook");
-      await reportComplete(true, { data: "result" });
-
-      expect(mockInvoke).toHaveBeenCalledWith("plugin_message", {
-        pluginName: "plugin",
-        hookName: "hook",
-        message: {
-          type: "complete",
-          success: true,
-          error: undefined,
-          result: { data: "result" },
-        },
-      });
-    });
-
-    it("sends complete message with failure and error", async () => {
-      setMessageContext("plugin", "hook");
-      await reportComplete(false, undefined, "Something went wrong");
-
-      expect(mockInvoke).toHaveBeenCalledWith("plugin_message", {
-        pluginName: "plugin",
-        hookName: "hook",
-        message: {
-          type: "complete",
-          success: false,
-          error: "Something went wrong",
-          result: undefined,
-        },
-      });
-    });
-
-    it("sends complete message with success and no result", async () => {
-      setMessageContext("plugin", "hook");
-      await reportComplete(true);
-
-      expect(mockInvoke).toHaveBeenCalledWith("plugin_message", {
-        pluginName: "plugin",
-        hookName: "hook",
-        message: {
-          type: "complete",
-          success: true,
-          error: undefined,
-          result: undefined,
         },
       });
     });

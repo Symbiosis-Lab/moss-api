@@ -23,13 +23,6 @@ export function setMessageContext(pluginName: string, hookName: string): void {
   currentHookName = hookName;
 }
 
-/**
- * Get the current message context
- * @category Messaging
- */
-export function getMessageContext(): { pluginName: string; hookName: string } {
-  return { pluginName: currentPluginName, hookName: currentHookName };
-}
 
 /**
  * Send a message to moss
@@ -98,20 +91,6 @@ export async function reportError(
   await sendMessage({ type: "error", error, context, fatal });
 }
 
-/**
- * Report completion to moss
- * @param success - Whether the operation succeeded
- * @param result - Optional result data
- * @param error - Optional error message (only used when success is false)
- * @category Messaging
- */
-export async function reportComplete(
-  success: boolean,
-  result?: unknown,
-  error?: string
-): Promise<void> {
-  await sendMessage({ type: "complete", success, error, result });
-}
 
 // ============================================================================
 // PanelTask lifecycle API (ADR-015 Phase 2 — T8a, 2026-05-28)

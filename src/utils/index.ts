@@ -3,11 +3,7 @@
  */
 
 // Tauri core (deprecated - use higher-level APIs instead)
-export {
-  getTauriCore,
-  isTauriAvailable,
-  type TauriCore,
-} from "./tauri.js";
+export { getTauriCore, type TauriCore } from "./tauri.js";
 
 // Plugin-side env-var access (allow-listed via Rust)
 export { getPluginEnvVar } from "./env.js";
@@ -15,11 +11,9 @@ export { getPluginEnvVar } from "./env.js";
 // Messaging
 export {
   setMessageContext,
-  getMessageContext,
   sendMessage,
   reportProgress,
   reportError,
-  reportComplete,
   // PanelTask lifecycle (ADR-015 Phase 2 — T8a). Preferred over
   // reportProgress for new code; legacy API stays supported.
   startTask,
@@ -56,11 +50,7 @@ export {
   listFiles,
   listProjectTree,
   fileExists,
-  createSymlink,
   readSiteFile,
-  readProjectFileBase64,
-  listSourceFiles,
-  listSocialFiles,
   listSiteFilesWithSizes,
   type ProjectFileEntry,
   type SiteFileInfo,
@@ -79,7 +69,6 @@ export {
 export {
   readPluginFile,
   writePluginFile,
-  listPluginFiles,
   pluginFileExists,
 } from "./plugin-storage.js";
 
@@ -112,27 +101,11 @@ export {
 // Platform Detection
 export {
   getPlatformInfo,
-  clearPlatformCache,
   type OSType,
   type ArchType,
   type PlatformKey,
   type PlatformInfo,
 } from "./platform.js";
-
-// Binary Resolution (auto-download external tools)
-export {
-  resolveBinary,
-  BinaryResolutionError,
-  type BinaryConfig,
-  type BinarySource,
-  type GitHubSource,
-  type BinaryResolution,
-  type ResolveBinaryOptions,
-  type ArchiveFormat as BinaryArchiveFormat,
-  type ArchiveLayout,
-  type VersionCheck,
-  type ResolutionSource,
-} from "./binary-resolver.js";
 
 // Cookie Management
 export {
@@ -143,17 +116,11 @@ export {
 } from "./cookies.js";
 
 // Event Communication
-export {
-  emitEvent,
-  onEvent,
-  waitForEvent,
-  isEventApiAvailable,
-} from "./events.js";
+export { emitEvent, onEvent } from "./events.js";
 
 // Toast Notifications
 export {
   showToast,
-  updateToast,
   dismissToast,
   TOAST_EVENT,
   TOAST_UPDATE_EVENT,

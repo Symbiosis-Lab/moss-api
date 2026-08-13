@@ -130,57 +130,6 @@ Workspace).
 
 ***
 
-### getMessageContext()
-
-```ts
-function getMessageContext(): object;
-```
-
-Get the current message context
-
-#### Returns
-
-`object`
-
-##### hookName
-
-```ts
-hookName: string;
-```
-
-##### pluginName
-
-```ts
-pluginName: string;
-```
-
-***
-
-### reportComplete()
-
-```ts
-function reportComplete(
-   success, 
-   result?, 
-error?): Promise<void>;
-```
-
-Report completion to moss
-
-#### Parameters
-
-| Parameter | Type | Description |
-| ------ | ------ | ------ |
-| `success` | `boolean` | Whether the operation succeeded |
-| `result?` | `unknown` | Optional result data |
-| `error?` | `string` | Optional error message (only used when success is false) |
-
-#### Returns
-
-`Promise`\<`void`\>
-
-***
-
 ### reportError()
 
 ```ts
@@ -346,42 +295,6 @@ await task.succeeded(`Imported ${articles.length} articles`);
 
 ## Filesystem
 
-### createSymlink()
-
-```ts
-function createSymlink(targetPath, linkPath): Promise<void>;
-```
-
-Create a symbolic link in the project directory
-
-Creates a symlink that points from linkPath to targetPath.
-Both paths are relative to the project root.
-Creates parent directories if they don't exist.
-
-#### Parameters
-
-| Parameter | Type | Description |
-| ------ | ------ | ------ |
-| `targetPath` | `string` | Path to the original file (relative to project root) |
-| `linkPath` | `string` | Path where the symlink will be created (relative to project root) |
-
-#### Returns
-
-`Promise`\<`void`\>
-
-#### Throws
-
-Error if symlink cannot be created or called outside a hook
-
-#### Example
-
-```typescript
-// Create a symlink from runtime/content/post.md -> 文章/post.md
-await createSymlink("文章/post.md", ".moss/.runtime/hugo/content/posts/post.md");
-```
-
-***
-
 ### fileExists()
 
 ```ts
@@ -486,56 +399,6 @@ Array of file info objects with path and size in bytes
 
 ***
 
-### listSocialFiles()
-
-```ts
-function listSocialFiles(): Promise<string[]>;
-```
-
-List social data source names from .moss/data/social/*.json
-
-Returns file stems (without .json extension) for all JSON files
-in the project's .moss/data/social/ directory. Returns empty array
-if directory doesn't exist.
-
-#### Returns
-
-`Promise`\<`string`[]\>
-
-Array of source names (e.g., ["comment", "douban", "matters"])
-
-***
-
-### listSourceFiles()
-
-```ts
-function listSourceFiles(): Promise<string[]>;
-```
-
-List source files in the project directory
-
-Returns relative paths of non-hidden files, excluding build artifacts
-(.moss/, .git/, node_modules/). Used by deploy plugins for source backup.
-
-#### Returns
-
-`Promise`\<`string`[]\>
-
-Array of relative file paths
-
-#### Throws
-
-Error if listing fails
-
-#### Example
-
-```typescript
-const sourceFiles = await listSourceFiles();
-// ["index.md", "posts/hello.md", "assets/logo.png"]
-```
-
-***
-
 ### readFile()
 
 ```ts
@@ -570,41 +433,6 @@ const content = await readFile("article/hello-world.md");
 
 // Read package.json
 const pkg = JSON.parse(await readFile("package.json"));
-```
-
-***
-
-### readProjectFileBase64()
-
-```ts
-function readProjectFileBase64(relativePath): Promise<string>;
-```
-
-Read a file from the project root as base64
-
-Returns base64-encoded content. Used by deploy plugins for
-source file backup operations.
-
-#### Parameters
-
-| Parameter | Type | Description |
-| ------ | ------ | ------ |
-| `relativePath` | `string` | Path relative to the project root |
-
-#### Returns
-
-`Promise`\<`string`\>
-
-Base64-encoded file content
-
-#### Throws
-
-Error if file cannot be read
-
-#### Example
-
-```typescript
-const base64Content = await readProjectFileBase64("posts/article.md");
 ```
 
 ***
@@ -682,35 +510,6 @@ await writeFile("index.md", markdownContent);
 ```
 
 ## Plugin storage
-
-### listPluginFiles()
-
-```ts
-function listPluginFiles(): Promise<string[]>;
-```
-
-List all files in the plugin's private storage directory
-
-Returns file paths relative to the plugin's storage directory.
-
-#### Returns
-
-`Promise`\<`string`[]\>
-
-Array of relative file paths
-
-#### Throws
-
-Error if directory cannot be listed or called outside a hook
-
-#### Example
-
-```typescript
-const files = await listPluginFiles();
-// ["config.json", "cache/articles.json", "cache/images.json"]
-```
-
-***
 
 ### pluginFileExists()
 
@@ -1485,52 +1284,6 @@ await showToast({
 await showToast("Processing...");
 ```
 
-***
-
-### updateToast()
-
-```ts
-function updateToast(id, options): Promise<void>;
-```
-
-Update an existing toast by ID
-
-Only works for toasts that were created with an `id` option.
-
-#### Parameters
-
-| Parameter | Type | Description |
-| ------ | ------ | ------ |
-| `id` | `string` | The toast ID to update |
-| `options` | `Partial`\<`Omit`\<[`ToastOptions`](interfaces/ToastOptions.md), `"id"`\>\> | Partial options to update (message, variant, etc.) |
-
-#### Returns
-
-`Promise`\<`void`\>
-
-#### Example
-
-```typescript
-// Show progress toast
-await showToast({
-  message: "Deploying...",
-  variant: "info",
-  id: "deploy-progress",
-  persistent: true
-});
-
-// Update progress
-await updateToast("deploy-progress", { message: "Pushing to remote..." });
-
-// Update to success
-await updateToast("deploy-progress", {
-  message: "Deployed!",
-  variant: "success",
-  persistent: false,
-  duration: 5000
-});
-```
-
 ## Events
 
 ### emitEvent()
@@ -1561,20 +1314,6 @@ await emitEvent("repo-name-validated", { name: "my-repo", available: true });
 // From plugin:
 await emitEvent("deployment-started", { url: "https://github.com/..." });
 ```
-
-***
-
-### isEventApiAvailable()
-
-```ts
-function isEventApiAvailable(): boolean;
-```
-
-Check if Tauri event API is available
-
-#### Returns
-
-`boolean`
 
 ***
 
@@ -1617,52 +1356,6 @@ const unlisten = await onEvent<{ name: string; available: boolean }>(
 
 // Later, to stop listening:
 unlisten();
-```
-
-***
-
-### waitForEvent()
-
-```ts
-function waitForEvent<T>(event, timeoutMs?): Promise<T>;
-```
-
-Wait for a single event occurrence
-
-#### Type Parameters
-
-| Type Parameter |
-| ------ |
-| `T` |
-
-#### Parameters
-
-| Parameter | Type | Default value | Description |
-| ------ | ------ | ------ | ------ |
-| `event` | `string` | `undefined` | Event name to wait for |
-| `timeoutMs` | `number` | `30000` | Maximum time to wait (default: 30000ms) |
-
-#### Returns
-
-`Promise`\<`T`\>
-
-Promise that resolves with the event payload
-
-#### Throws
-
-Error if timeout is reached
-
-#### Example
-
-```typescript
-try {
-  const result = await waitForEvent<{ confirmed: boolean }>("user-confirmed", 10000);
-  if (result.confirmed) {
-    // proceed
-  }
-} catch (e) {
-  console.log("User did not respond in time");
-}
 ```
 
 ## Binary execution
@@ -1718,79 +1411,6 @@ const result = await executeBinary({
   timeoutMs: 120000,
   env: { NODE_ENV: "production" },
 });
-```
-
-## Binary resolution
-
-### BinaryArchiveFormat
-
-```ts
-type BinaryArchiveFormat = "tar_gz" | "zip" | "raw";
-```
-
-Archive format for downloaded binaries.
-
-***
-
-### ResolutionSource
-
-```ts
-type ResolutionSource = "configured_path" | "system_path" | "cache" | "downloaded";
-```
-
-How the binary was found during resolution.
-
-***
-
-### resolveBinary()
-
-```ts
-function resolveBinary(config, options?): Promise<BinaryResolution>;
-```
-
-Resolve a binary by invoking the Rust-side unified resolver via Tauri command.
-
-Resolution order (handled in Rust):
-1. Check configured path (if provided)
-2. Check system PATH
-3. Check ~/.moss/bin/ cache
-4. Download from configured source (if autoDownload is true)
-
-#### Parameters
-
-| Parameter | Type | Description |
-| ------ | ------ | ------ |
-| `config` | [`BinaryConfig`](interfaces/BinaryConfig.md) | Binary configuration matching the Rust BinaryConfig shape |
-| `options` | [`ResolveBinaryOptions`](interfaces/ResolveBinaryOptions.md) | Resolution options (configured path, auto-download, progress callback) |
-
-#### Returns
-
-`Promise`\<[`BinaryResolution`](interfaces/BinaryResolution.md)\>
-
-Resolution result with path, version, and source
-
-#### Throws
-
-BinaryResolutionError if binary cannot be resolved
-
-#### Example
-
-```typescript
-const resolution = await resolveBinary({
-  name: "hugo",
-  version_check: { args: ["version"], pattern: "v(\\d+\\.\\d+\\.\\d+)" },
-  sources: {
-    "darwin-arm64": {
-      github: { owner: "gohugoio", repo: "hugo", asset_pattern: "hugo_extended_{version}_darwin-arm64.tar.gz" },
-      archive_format: "tar_gz",
-    },
-  },
-}, {
-  configuredPath: context.config.hugo_path,
-  onProgress: (binary, bytes, total) => console.log(`${binary}: ${bytes}/${total}`),
-});
-
-await executeBinary({ binaryPath: resolution.path, args: ["--version"] });
 ```
 
 ## Platform
@@ -2131,17 +1751,3 @@ Use higher-level APIs instead:
 #### Throws
 
 Error if Tauri is not available
-
-***
-
-### isTauriAvailable()
-
-```ts
-function isTauriAvailable(): boolean;
-```
-
-Check if Tauri is available
-
-#### Returns
-
-`boolean`
