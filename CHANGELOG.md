@@ -1,15 +1,15 @@
 # Changelog
 
-## 0.10.0
-
-### Minor Changes
-
-- #738 Thanks [@guoliu](https://github.com/guoliu)! - First publish via the open-source release pipeline. moss-api source consolidated into the moss monorepo; CI build pipeline replaces the standalone repo's build setup.
-
 All notable changes to this package are documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+Version headings are written by changesets, which prepends each new one directly
+under this preamble — so the preamble stays at the top and `[Unreleased]` sits
+immediately below it. Before 2026-08-13 the `## 0.10.0` heading sat ABOVE the
+preamble, which would have buried these unreleased notes under every future
+release heading.
 
 ## [Unreleased]
 
@@ -37,6 +37,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 _Pending publish — cumulative since `0.7.12` (last released on main); full detail under [0.8.0]._
 
 - `SocialComment` social-layer comment type, `contributes.jobs` plugin job descriptor, `startTask()` API, and `exposeAdvisoryPath()` utility.
+
+## 0.10.0
+
+### Minor Changes
+
+- #738 Thanks [@guoliu](https://github.com/guoliu)! - First publish via the open-source release pipeline. moss-api source consolidated into the moss monorepo; CI build pipeline replaces the standalone repo's build setup.
 
 ## [0.8.0] - 2026-06-11
 

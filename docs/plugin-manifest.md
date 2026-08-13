@@ -46,20 +46,21 @@ your first publish costs a version bump.
 | `icon` | string | Filename in `assets/`; falls back to `icon.svg`, `icon.png`, `logo.svg`, `logo.png` |
 | `global_name` | string | IIFE global name; defaults to PascalCase name + `Plugin` |
 | `repository`, `homepage` | string | Display and provenance only |
-| `min_moss_version` | string | Semver floor. Note: not currently enforced at load |
-| `preview` | boolean | Hidden from the catalog unless the user enables preview features |
+| `min_moss_version` | string | Semver floor. **Nothing compares it today** — moss parses it and never checks it, so it documents your intent rather than enforcing it |
+| `preview` | boolean | Hides the plugin from the catalog unless the user enables preview features. Only read for plugins bundled into the moss binary today; the catalog that would read it for a downloaded plugin does not exist yet |
 
 ## What the plugin does
 
-`capabilities` lists the hooks your plugin implements; each name maps to an
-exported function of the same name.
+`capabilities` lists what your plugin does. Three of the five map to an exported
+function of the same name; two do not, which is easy to get wrong.
 
 | Capability | Hook | What the user sees |
 |---|---|---|
 | `deploy` | `deploy(ctx)` | a row in the deploy-target dropdown |
 | `syndicate` | `syndicate(ctx)` | a channel that publishes after a deploy |
 | `process` | `process(ctx)` | nothing directly — runs at scan time |
-| `login` | `login()` | a connection row in the plugin's settings |
+| `login` | none | a connection row in the plugin's settings. moss calls your `login` export out of band via `connect_account`, not as a build hook |
+| `import` | none | a label on the task moss shows while pulling your posts in. There is no `import` export — the word is reserved in JavaScript — so declaring it alone runs nothing |
 
 Deploy plugins may also export `configure_domain(ctx)` to handle custom-domain
 setup (DNS records, verification). It is an optional hook, not a capability.
@@ -74,23 +75,31 @@ Declarative additions moss acts on without running your code:
 
 ```json
 "contributes": {
-  "frontmatter": [ ... ],
-  "embed_renderers": [ ... ],
+  "frontmatter": {
+    "fields": {
+      "matters_id": { "type": "string", "description": "Matters article id" }
+    }
+  },
   "jobs": { "syndicate": { "verb": "Syndicated", "noun": "posts" } }
 }
 ```
 
-`frontmatter` adds schema fields the editor validates and completes.
-`embed_renderers` registers renderers for embed syntax. `jobs` supplies the
-words moss uses when it reports your hook's progress — moss owns the pixels, you
-supply the verb and noun.
+`frontmatter` adds schema fields the editor validates and completes — note the
+`fields` wrapper; a bare list is a type error that fails the whole manifest, not
+just the contribution. `jobs` supplies the words moss uses when it reports your
+hook's progress — moss owns the pixels, you supply the verb and noun.
+
+There is a third key, `embed_renderers`, for renderers of embed syntax. moss
+parses it and **nothing consumes it yet** — the adapter exists but no build path
+constructs it, so a plugin declaring one gets nothing. Do not build on it until
+this note says otherwise.
 
 ## Configuration
 
 | Field | Type | Notes |
 |---|---|---|
 | `config` | object | Default values |
-| `config_schema` | object | Field name → `"string"`, `"boolean"`, `"number"`, `"array"`, `"string[]"` |
+| `config_schema` | object | Field name → `"string"`, `"boolean"`, or `"array"`. Those three are all the settings UI renders; anything else draws a disabled row reading "unsupported field type" |
 | `config_labels` | object | Field name → label in settings |
 | `config_descriptions` | object | Field name → help text |
 | `config_placeholders` | object | Field name → input placeholder |
@@ -135,8 +144,15 @@ open an issue.
 ## Coming changes
 
 moss is replacing `capabilities` with declarations of what the user gains.
-The two replacements are **already accepted** — a manifest can use either
-vocabulary today, and moss reads both:
+
+**Do not migrate yet.** The two replacements below are implemented but not
+released. A moss that predates them ignores the new keys — your plugin loads,
+its capability list comes out empty, and it is silently absent from the deploy
+menu with no error anywhere. Keep writing `capabilities` until this note names
+the release that reads contributions; `min_moss_version` will not protect you,
+because nothing compares it.
+
+What is coming:
 
 ```json
 "contributes": {
