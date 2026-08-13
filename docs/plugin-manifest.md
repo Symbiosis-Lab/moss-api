@@ -134,12 +134,36 @@ open an issue.
 
 ## Coming changes
 
-moss is replacing `capabilities` with declarations of what the user gains:
-`contributes.channel` (replacing `syndicate` and `login`) and
-`contributes.deploy_target` (replacing `deploy`). `process` disappears from the
-manifest entirely — which hooks your plugin exports will be read from your code
-at install time rather than declared. moss will keep reading `capabilities` for
-a release after the change lands.
+moss is replacing `capabilities` with declarations of what the user gains.
+The two replacements are **already accepted** — a manifest can use either
+vocabulary today, and moss reads both:
+
+```json
+"contributes": {
+  "deploy_target": { "display_name": "IPFS" }
+}
+```
+
+```json
+"contributes": {
+  "channel": {
+    "display_name": "Matters",
+    "requires_login": true,
+    "imports": true
+  }
+}
+```
+
+`contributes.deploy_target` replaces the `deploy` capability.
+`contributes.channel` replaces `syndicate`, `login` and `import`: syndication is
+what a channel *is*, so it needs no flag, and the two flags say whether the user
+has to connect an account first and whether their existing posts can be pulled
+back into the folder.
+
+Still to come: `process` disappears from the manifest entirely — which hooks
+your plugin exports will be read from your code at install time rather than
+declared. `capabilities` keeps working for at least a release after that, so
+there is no version where you must have migrated.
 
 The rationale is in the moss repository as ADR-054: a manifest should say what
 the user is choosing, and anything that merely restates what the code already

@@ -28,7 +28,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Thirteen exports no plugin has ever called, removed while removing them is still cheap: `isTauriAvailable`, `getMessageContext`, `reportComplete`, `createSymlink`, `readProjectFileBase64`, `listSourceFiles`, `listSocialFiles`, `listPluginFiles`, `waitForEvent`, `isEventApiAvailable`, `updateToast`, `clearPlatformCache`, and `resolveBinary` / `BinaryResolutionError` with their types. Verified against every plugin in both repositories (the monorepo and moss-registry). Each one was a promise the SDK would have had to keep indefinitely for no one; `resolveBinary` was worse than unused — it wrapped `resolve_binary_command`, which is not a QuickJS host function, so any call to it failed on every version of moss. If you need one of these back, open an issue: a request from a real plugin is exactly the evidence that should bring an API into the SDK.
 - `utils/window.ts`, a module that exported nothing.
 
-`showBrowserForm` is also uncalled but stays for now — it is the declarative alternative to hand-writing panel HTML, and why nobody reaches for it is a question worth answering before deleting the evidence.
+`showBrowserForm` is also uncalled, and stays only because it is already marked `@deprecated` with a migration path (`openBrowserWithHtml()` + explicit `closeBrowser()`); deleting it is the second half of a deprecation, scheduled separately. It is not a form API — it takes raw HTML, exactly like `openBrowserWithHtml`, and adds only lifecycle: hidden submit/cancel listeners, auto-close, and a five-minute timeout. It never solved the reason plugins hand-write panel stylesheets, so its removal costs nothing there.
 
 ### Changed (BREAKING)
 
