@@ -13,6 +13,16 @@ release heading.
 
 ## [Unreleased]
 
+## [0.12.0] - 2026-08-20
+
+### Added
+
+- **`toast` on `HookResult`, and the `HookToast` type it carries.** A hook now *describes* the outcome it wants surfaced — `{ outcome: "success" | "info" | "error", title: string, url?: string | null }` — instead of raising a toast itself mid-run. moss maps that description onto its own severity, timing and suppression rules, which is what lets a surface that already reports the outcome (the first-publish wizard, showing the address it just published to) swallow the duplicate rather than stack a second notice on top of it. Optional and additive: a hook that returns no `toast` behaves exactly as before.
+
+### Changed
+
+- **`showToast()` is no longer the documented way to report a hook's outcome.** The function is unchanged and still exported; what changed is the guidance on `HookResult` and `HookToast`, which now says that moss owns every status surface and that outcome UX travels back as data in the return value. The practical reason to migrate is that an imperative toast cannot be reconciled with the surfaces moss is already showing for the same operation — and that a hook has to succeed with no UI attached at all, since CLI and headless hosts run the same hooks.
+
 ## [0.11.0] - 2026-08-12
 
 ### Added
