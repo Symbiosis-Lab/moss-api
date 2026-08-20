@@ -19,6 +19,26 @@
 import type { DeploymentInfo } from "./context.js";
 
 /**
+ * Outcome notification described by a hook result.
+ *
+ * This is data about what happened, not a rendering instruction: moss owns
+ * every status surface (per its plugin-architecture boundary) and maps
+ * `outcome` to its own toast severity, timing, and suppression rules — e.g.
+ * a surface that already shows the outcome (the first-publish wizard) can
+ * swallow it entirely.
+ *
+ * @category Hooks
+ */
+export interface HookToast {
+  /** What happened: "success" | "info" | "error" */
+  outcome: "success" | "info" | "error";
+  /** Short display text (e.g., "Live on Tor", "No changes to deploy") */
+  title: string;
+  /** Optional clickable URL (e.g., the deployed site URL) */
+  url?: string | null;
+}
+
+/**
  * Standard result returned from hook execution
  *
  * ## Design Principles
@@ -45,27 +65,6 @@ import type { DeploymentInfo } from "./context.js";
  * ```
  * @category Hooks
  */
-
-/**
- * Outcome notification described by a hook result.
- *
- * This is data about what happened, not a rendering instruction: moss owns
- * every status surface (per its plugin-architecture boundary) and maps
- * `outcome` to its own toast severity, timing, and suppression rules — e.g.
- * a surface that already shows the outcome (the first-publish wizard) can
- * swallow it entirely.
- *
- * @category Hooks
- */
-export interface HookToast {
-  /** What happened: "success" | "info" | "error" */
-  outcome: "success" | "info" | "error";
-  /** Short display text (e.g., "Live on Tor", "No changes to deploy") */
-  title: string;
-  /** Optional clickable URL (e.g., the deployed site URL) */
-  url?: string | null;
-}
-
 export interface HookResult {
   /** Whether the operation succeeded */
   success: boolean;

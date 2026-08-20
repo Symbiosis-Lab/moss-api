@@ -7,8 +7,10 @@ Standard result returned from hook execution
 ## Design Principles
 
 1. **Single completion path**: Return value only, no explicit reporting
-2. **Flow control only**: HookResult tells moss success/failure
-3. **Decoupled UX**: Plugins call showToast() separately for notifications
+2. **Flow control only**: `success` tells moss whether to continue
+3. **Outcome UX is data, not calls**: describe the outcome in `toast`;
+   moss decides how (and whether) to present it. A hook must succeed with
+   no UI attached at all — CLI and headless hosts run the same hooks.
 
 ## Usage Pattern
 
@@ -16,11 +18,12 @@ Standard result returned from hook execution
 async function deploy(context): Promise<HookResult> {
   // Do work...
 
-  // Show toast (plugin's choice of timing, message, style)
-  await showToast({ message: "Deployed!", variant: "success" });
-
-  // Return result (flow control only, no UX)
-  return { success: true, deployment: {...} };
+  // Return result; `toast` describes the outcome for moss to render
+  return {
+    success: true,
+    deployment: {...},
+    toast: { outcome: "success", title: "Deployed!", url },
+  };
 }
 ```
 
@@ -53,3 +56,13 @@ success: boolean;
 ```
 
 Whether the operation succeeded
+
+***
+
+### toast?
+
+```ts
+optional toast?: HookToast | null;
+```
+
+Outcome notification for moss to present (moss controls rendering)

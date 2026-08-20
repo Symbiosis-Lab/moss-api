@@ -292,6 +292,7 @@ await task.succeeded(`Imported ${articles.length} articles`);
 | Interface | Description |
 | ------ | ------ |
 | [HookResult](interfaces/HookResult.md) | Standard result returned from hook execution |
+| [HookToast](interfaces/HookToast.md) | Outcome notification described by a hook result. |
 
 ## Filesystem
 
