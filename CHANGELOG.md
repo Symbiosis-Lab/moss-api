@@ -25,6 +25,14 @@ release heading.
 
 ## [0.11.0] - 2026-08-12
 
+### Removed
+
+- **Thirteen exports no plugin has ever called:** `isTauriAvailable`, `getMessageContext`, `reportComplete`, `createSymlink`, `readProjectFileBase64`, `listSourceFiles`, `listSocialFiles`, `listPluginFiles`, `waitForEvent`, `isEventApiAvailable`, `updateToast`, `clearPlatformCache`, and `resolveBinary` (with `BinaryResolutionError`) — verified against every plugin in both repositories. `resolveBinary` was worse than unused: it wrapped a command that is not a QuickJS host function, so any call to it failed on every version of moss.
+
+  A **minor** bump, not a patch, on purpose. Plugins pin `^0.10.0`, which for a 0.x package admits every 0.10.x — a patch release would have installed these removals automatically and broken such a plugin with no signal. 0.11.0 falls outside that range, so an author upgrades deliberately.
+
+  _Recorded on 2026-08-21._ This entry existed only as an unconsumed changeset file and so never reached the changelog; 0.11.0 was also never published to npm, which went 0.10.0 → 0.12.0. An author upgrading across that gap meets these removals here.
+
 ### Added
 
 - Topic guide [`docs/plugin-manifest.md`](docs/plugin-manifest.md) — every manifest field, grouped by what it is for: who your plugin is, what the user gains by installing it, and what the user is trusting it with. Covers the `contributes` keys, config vs. plugin-private state, why a new plugin should ship `"preview": true`, and the two rules that are easy to learn the hard way — a deploy hook must work with no UI, and a raw `invoke()` for a command that isn't a host function fails on every version of moss. The manifest reference in the monorepo's CONTRIBUTING.md was a year stale (it described a webview runtime, example plugins that no longer exist, and omitted nine shipped fields); this file replaces it, and ships in the published package so external authors can actually read it.
